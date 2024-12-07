@@ -7,15 +7,27 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    ChatRoom: typeof import('./components/basic/ChatRoom.vue')['default']
+    copy: typeof import('./components/LiveHead copy.vue')['default']
+    ElAffix: typeof import('element-plus/es')['ElAffix']
+    ElInput: typeof import('element-plus/es')['ElInput']
     HelloWorld: typeof import('./components/HelloWorld.vue')['default']
     IconCommunity: typeof import('./components/icons/IconCommunity.vue')['default']
     IconDocumentation: typeof import('./components/icons/IconDocumentation.vue')['default']
     IconEcosystem: typeof import('./components/icons/IconEcosystem.vue')['default']
     IconSupport: typeof import('./components/icons/IconSupport.vue')['default']
     IconTooling: typeof import('./components/icons/IconTooling.vue')['default']
+    IM: typeof import('./components/basic/IM.vue')['default']
+    LiveAbout: typeof import('./components/LiveAbout.vue')['default']
+    LiveFooter: typeof import('./components/LiveFooter.vue')['default']
+    LiveHead: typeof import('./components/LiveHead.vue')['default']
+    'LiveHead copy': typeof import('./components/LiveHead copy.vue')['default']
+    LiveRoom: typeof import('./components/LiveRoom.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    TempCodeRunnerFile: typeof import('./components/tempCodeRunnerFile.vue')['default']
     TheWelcome: typeof import('./components/TheWelcome.vue')['default']
+    VideoPlayer: typeof import('./components/basic/VideoPlayer.vue')['default']
     WelcomeItem: typeof import('./components/WelcomeItem.vue')['default']
   }
 }

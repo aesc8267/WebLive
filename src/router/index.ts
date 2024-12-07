@@ -15,7 +15,7 @@ import Frame_96 from '../views/Frame_96/Frame_96.vue';
 import Frame_97 from '../views/Frame_97/Frame_97.vue';
 import Frame_98 from '../views/Frame_98/Frame_98.vue';
 import Zhuye_1 from '../views/zhuye_1/zhuye_1.vue';
-import Plugin_file_cover_1 from '../views/Plugin_file_cover_1/Plugin_file_cover_1.vue';
+// import Plugin_file_cover_1 from '../views/Plugin_file_cover_1/Plugin_file_cover_1.vue';
 
 const routes = [
   {
@@ -98,11 +98,11 @@ const routes = [
     name: 'zhuye_1',
     component: Zhuye_1,
   },
-  {
-    path: '/Plugin_file_cover_1',
-    name: 'Plugin_file_cover_1',
-    component: Plugin_file_cover_1,
-  },
+  // {
+  //   path: '/Plugin_file_cover_1',
+  //   name: 'Plugin_file_cover_1',
+  //   component: Plugin_file_cover_1,
+  // },
 ];
 
 const router = createRouter({

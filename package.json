@@ -13,11 +13,16 @@
     "lint": "eslint . --fix"
   },
   "dependencies": {
+    "@types/hls.js": "^0.13.3",
     "element-plus": "^2.9.0",
+    "hls.js": "^1.5.17",
     "pinia": "^2.2.6",
     "sass": "^1.82.0",
+    "simple-peer": "^9.11.1",
+    "socket.io-client": "^4.8.1",
     "vue": "^3.5.13",
-    "vue-router": "^4.4.5"
+    "vue-router": "^4.4.5",
+    "vue-svg-loader": "^0.16.0"
   },
   "devDependencies": {
     "@tsconfig/node22": "^22.0.0",
