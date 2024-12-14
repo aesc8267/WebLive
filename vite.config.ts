@@ -4,6 +4,7 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueDevTools from 'vite-plugin-vue-devtools'
 
+import legacy from "@vitejs/plugin-legacy"
 import path from 'path'
 import AutoImport from 'unplugin-auto-import/vite'
 import IconsResolver from 'unplugin-icons/resolver'
@@ -13,12 +14,17 @@ import Components from 'unplugin-vue-components/vite'
 // https://vite.dev/config/
 const pathSrc = path.resolve(__dirname, 'src')
 export default defineConfig({
+  base: './',
   plugins: [
     vue(),
     vueDevTools(),
     Icons({
       compiler: 'vue3',// 指定编译器
       autoInstall: true,// 自动安装
+  }),
+  legacy({
+    targets: ["ie>=11"],
+    additionalLegacyPolyfills: ["regenerator-runtime/runtime"],
   }),
   AutoImport({
     // Auto import functions from Vue, e.g. ref, reactive, toRef...

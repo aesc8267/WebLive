@@ -1,0 +1,78 @@
+1.{
+       <!-- 设置头像和用户名，搁置废弃 -->
+            <!-- <div class="box">
+              <el-button
+                @click="fullWebVideo()"
+                id="fullScreen"
+                ref="fullScreen"
+              >
+                Full Page Video</el-button
+              ><br />
+              <div>
+                <img id="myIcon" style="width: 32px; height: 32px" />
+                <div style="display: inline-block">
+                  Custome Avatar & Name<br /><input
+                    type="text"
+                    ref="MyName"
+                    id="name"
+                    placeholder="Input your name here..."
+                  />
+                </div>
+                <br />
+                <input
+                  type="file"
+                  name="icon"
+                  id="uploadIcon"
+                  onchange="iconInput()"
+                />
+              </div>
+            </div> -->
+         function fullWebVideo() {
+  if (fullWebVideoTimes === 0) {
+    if (/Mobi|Android|iPhone/i.test(navigator.userAgent)) {
+      WebVideo.value!.style.height = window.innerWidth + "px";
+      WebVideo.value!.style.width = window.innerHeight + "px";
+      WebVideo.value!.style.transform = "rotate(90deg)";
+      WebVideo.value!.style.position = "absolute";
+      if (middleX === 0) {
+        middleX = WebVideo.value!.offsetWidth - window.innerWidth;
+      }
+      WebVideo.value!.style.right = -middleX + "px";
+      WebVideo.value!.style.top =
+        WebVideo.value!.offsetWidth * 0.25 + 10 + "px";
+      container.value!.style.bottom = -20 + "px";
+      fullScreen.value!.style.position = "absolute";
+      fullScreen.value!.style.bottom = 0 + "px";
+    } else {
+      WebVideo.value!.style.height = window.innerHeight + "px";
+      WebVideo.value!.style.width = window.innerWidth + "px";
+      WebVideo.value!.style.position = "absolute";
+      window.scrollBy({
+        top: document.documentElement.scrollHeight,
+        behavior: "smooth",
+      });
+    }
+    fullWebVideoTimes++;
+    setTimeout(function () {
+      if (fullWebVideoTimes === 1) {
+        chatBox.value!.style.visibility = "hidden";
+      }
+    }, 3000);
+  } else {
+    if (/Mobi|Android|iPhone/i.test(navigator.userAgent)) {
+      WebVideo.value!.style.transform = "none";
+      WebVideo.value!.style.width = "100%";
+      WebVideo.value!.style.height = "35%";
+      WebVideo.value!.style.position = "static";
+      fullScreen.value!.style.position = "static";
+      container.value!.style.bottom = 0 + "px";
+      WebVideo.value!.style.position = "static";
+    } else {
+      WebVideo.value!.style.height = "85%";
+      WebVideo.value!.style.width = "70%";
+    }
+    fullWebVideoTimes = 0;
+    chatBox.value!.style.visibility = "visible";
+  }
+}
+}

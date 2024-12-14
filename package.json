@@ -14,8 +14,11 @@
   },
   "dependencies": {
     "@types/hls.js": "^0.13.3",
+    "@vitejs/plugin-legacy": "^6.0.0",
     "element-plus": "^2.9.0",
     "hls.js": "^1.5.17",
+    "lodash": "^4.17.21",
+    "peerjs": "^1.5.4",
     "pinia": "^2.2.6",
     "sass": "^1.82.0",
     "simple-peer": "^9.11.1",

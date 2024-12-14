@@ -15,5 +15,7 @@
   flex-direction: row;
   width: 100%;
   padding: 2.5rem;
+  margin-top: 3rem;
 }
+
 </style>

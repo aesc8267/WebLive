@@ -1,3 +1,3 @@
 <template>
-  <p>hello world </p>
+  <p>弹幕评论</p>
 </template>
