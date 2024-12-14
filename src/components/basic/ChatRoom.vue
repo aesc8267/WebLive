@@ -3,7 +3,7 @@
     <div class="chat-room-head">
       <p>聊天室</p>
     </div>
-    <div class="chat-room-body">
+    <!-- <div class="chat-room-body">
       <el-scrollbar class="chat-room-content" ref="scrollbar">
         <p v-for="(item, index) in messages" :key="index">
           {{ item.message }}
@@ -44,49 +44,49 @@
           </template>
         </ElInput>
       </div>
-    </div>
+    </div> -->
     <div class="chat-room-footer"></div>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { ElScrollbar } from "element-plus";
-import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
-const messages = ref<Message[]>([]);
-const message = ref("");
-const scrollbar = ref<InstanceType<typeof ElScrollbar > |null>(null);
-let socket: WebSocket | null = null;
-onMounted(() => {
-  socket = new WebSocket("wss://echo.websocket.org");
-  socket!.onopen = () => {
-    console.log("WebSocket 连接建立");
-  };
-  socket!.onmessage = (event: MessageEvent) => {
-    const newMessage: Message = JSON.parse(event.data);
-    messages.value!.push(newMessage);
-    nextTick(() => {
-      scrollbar.value!.scrollTo({top:scrollbar.value!.wrapRef!.scrollHeight})
-    })
-  };
-  socket!.onclose = () => {
-    console.log("WebSocket 连接断开");
-  };
-});
+// import type { ElScrollbar } from "element-plus";
+// import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+// const messages = ref<Message[]>([]);
+// const message = ref("");
+// const scrollbar = ref<InstanceType<typeof ElScrollbar > |null>(null);
+// let socket: WebSocket | null = null;
+// onMounted(() => {
+//   socket = new WebSocket("wss://echo.websocket.org");
+//   socket!.onopen = () => {
+//     console.log("WebSocket 连接建立");
+//   };
+//   socket!.onmessage = (event: MessageEvent) => {
+//     const newMessage: Message = JSON.parse(event.data);
+//     messages.value!.push(newMessage);
+//     nextTick(() => {
+//       scrollbar.value!.scrollTo({top:scrollbar.value!.wrapRef!.scrollHeight})
+//     })
+//   };
+//   socket!.onclose = () => {
+//     console.log("WebSocket 连接断开");
+//   };
+// });
 
-const sendMessage = () => {
-  if (message.value.trim()) {
-    const newMessage: Message = {
-      message: message.value.trim(),
-    };
-    socket!.send(JSON.stringify(newMessage));
-    message.value = "";
-  }
-};
-onBeforeUnmount(() => {
-  if (socket) {
-    socket.close();
-  }
-});
+// const sendMessage = () => {
+//   if (message.value.trim()) {
+//     const newMessage: Message = {
+//       message: message.value.trim(),
+//     };
+//     socket!.send(JSON.stringify(newMessage));
+//     message.value = "";
+//   }
+// };
+// onBeforeUnmount(() => {
+//   if (socket) {
+//     socket.close();
+//   }
+// });
 </script>
 
 <style lang="scss" scoped>
@@ -94,8 +94,6 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   border-radius: 2.5rem;
-  width: 38.88rem;
-  height: 42.31rem;
   border: solid 0.063rem #d3c2ca;
   overflow: hidden;
   flex: 1;

@@ -1116,7 +1116,7 @@ const roomAbout = ref("周二读书会");
   flex-direction: column;
   justify-content: space-between;
   width: 100%;
-  padding: 2.5rem;
+  padding: 2.5rem 2.5rem 0 2.5rem;
   margin-top: 3rem;
 }
 #liveSetting {
@@ -1131,7 +1131,7 @@ const roomAbout = ref("周二读书会");
 }
 .videoBox {
   width: 100%;
-  height: 100%;
+  height: 42.31rem;
   display: flex;
   flex-direction: row;
   justify-content: start;
@@ -1142,7 +1142,8 @@ const roomAbout = ref("周二读书会");
     flex: 2;
     overflow: hidden;
     video {
-      height: 100%;
+      width: 100%;
+      object-fit: cover;
     }
   }
   .video-player-head {
@@ -1179,7 +1180,6 @@ const roomAbout = ref("周二读书会");
     flex-direction: column;
     border-radius: 2.5rem;
     width: 38.88rem;
-    height: 42.31rem;
     border: solid 0.063rem #d3c2ca;
     overflow: hidden;
     margin: 0 1rem;

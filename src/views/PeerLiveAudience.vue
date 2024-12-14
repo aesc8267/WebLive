@@ -1,215 +1,112 @@
 <template>
-  <div id="liveSetting" ref="liveSetting">
-    <img id="LiveCover" />
-    <div style="height: 100%; width: 30%; margin-top: 2%">
-      <input
-        type="text"
-        id="LiveTitle"
-        class="liveInput"
-        placeholder="Input your Room Title there..."
-      /><br />
-      <textarea
-        id="LiveSummary"
-        rows="5"
-        cols="33"
-        placeholder="Input your Summary there..."
-      ></textarea
-      ><br />
-    </div>
-    <div style="height: 100%; width: 30%; margin-top: 2%">
-      <input
-        type="text"
-        id="LiveCoverURL"
-        class="liveInput"
-        ref="LiveCoverURL"
-        placeholder="URL of img served as Cover"
-      /><br />
-      <input id="LiveCoverInput" type="file" onchange="liveCoverInput()" />Upload Local Image<br /><br />
-      <button @click="peer.disconnect()">Lock the room<br />(disconnect to PeerServer)</button>
-      <button @click="peer.reconnect()">reconnect with original Id</button>
-    </div>
-    <div>
-      <button id="closeLiveMenu" class="actionButton" @click="showLive()">Close</button>
-      <button id="modify" class="actionButton" @click="modify()">modify</button>
-    </div>
-  </div>
-  <!-- Detail of Room -->
-  <div id="openRoomInfo" ref="openRoomInfoDiv">
-    <img id="roomCover" src="" ref="roomCover" />
-    <div id="roomText">
-      <div id="roomTitle" ref="roomTitle"></div>
-      <textarea id="roomSummary" rows="5" cols="33" readonly ref="roomSummary"></textarea>
-      <div id="nodeInfo">
-        <div id="stable">
-          <button id="hostBlock" @click="echoNodesMap(nodesMap[9], 0, nodesMap[7], 0)">me</button>
-          <button id="refreshMap" @click="refreshMap(0)">Refresh</button>
+  <div class="audience">
+    <!-- Live interaction-->
+    <div class="videoBox">
+      <div class="video-player">
+        <div class="video-player-head">
+          <div class="video-player-head-avator">
+            <img src="/src/assets/images/live/152avator.avif" alt="头像" />
+          </div>
+          <div class="video-player-head-title">
+            <h2>{{ roomName }}</h2>
+            <h3>{{ roomAbout }}</h3>
+          </div>
+          <div class="live-control-box">
+            <!-- Receiver -->
+            <!-- <div style="font-weight: bold">Host</div> -->
+            <el-button id="refreshel-button" @click="refreshMap(0)"
+              >Refresh</el-button
+            >
+            <el-button @click="peer.reconnect">Reconnect to Peer Server</el-button>
+            <div id="connectRoot" ref="connectRoot" style="visibility: hidden">
+              Join a root node:<input
+                type="text"
+                id="peerId"
+                ref="peerId"
+                placeholder="Input Id of Root node..."
+              />
+              <el-button
+                id="connectel-button"
+                ref="connectel-button"
+                @click="() => {
+          tryConnect(3, peerId!.value, false, false);
+        }"
+              >
+                Connect
+              </el-button>
+            </div>
+            <!-- <input type="checkbox" id="ifAutoReconnect" checked="checked">Automatic Reconnection<br> -->
+          </div>
         </div>
-        <div id="block0" ref="block0"></div>
-        <div id="block1" ref="block1"></div>
+        <!--PS: if no video(maybe leaded by autoplay), try to click it to play(or F12 check the stream)-->
+        <video id="webVideo" ref="WebVideo" controls autoplay></video>
       </div>
-    </div>
-    <button id="autoJoin" class="actionButton" @click="autoJoin(3)">auto<br />Join</button>
-    <button id="closeInfo" class="actionButton" @click="openRoomInfo()">Close</button>
-  </div>
-
-  <!-- Stream Source -->
-  <div id="streamSource" ref="streamSource">
-    <div class="box" id="onlyPC" ref="onlyPC" style="margin-top: 10px">
-      <div style="font-weight: bold">
-        Share PC Desktop:<br />
-        <button type="button" id="browserDisplayMedia" @click="useDisplayMedia()">
-          Use Display Stream
-        </button>
-      </div>
-    </div>
-    <div class="box" style="margin-top: 10px">
-      <div style="font-weight: bold">
-        Share Local Devices:
-        <button type="button" id="browserNavigatorMediaDevices" @click="askNavigatorMediaDevices()">
-          Upload Local Device</button
-        ><br />
-        <input type="checkbox" ref="ifUseCamera" />Camera
-        <input type="checkbox" ref="ifUseMicrophone" />Microphone
-      </div>
-    </div>
-    <div class="box" style="margin-top: 10px">
-      <div style="font-weight: bold">
-        Input SRS Media Stream url like "url/key"(rtmp -> srs -> webrtc)<br />
-        <input
-          id="streamUrlSRS"
-          ref="streamUrlSRS"
-          type="text"
-          placeholder="input the url of srs media Stream here..."
-        />
-        <button
-          type="button"
-          id="uploadStreamSRS"
-          @click="shareSRSMediaStream(streamUrlSRS!.value)"
-        >
-          share SRS Media Stream
-        </button>
-      </div>
-      <div style="font-weight: bold">
-        Lend Media Stream From Others
-        <input id="lendAimId" ref="lendAimId" type="text" placeholder="input ID OF AIM here..." />
-        <button type="button" id="lendStream" @click="tryConnect(1, lendAimId!.value, false, true)">
-          lend aim stream( need be accepted )
-        </button>
-      </div>
-    </div>
-    <div class="box" style="margin-top: 10px">
-      <div style="font-weight: bold">
-        <input type="checkbox" id="ifNotDisplayLocalStream" ref="ifNotDisplayLocalStream" />If not
-        Display the localStream
-        <br />
-        —— enable for saving performance of devices
-      </div>
-      <button class="actionButton" id="submitMediaStream" @click="streamSourceMenu()">
-        submit
-      </button>
-    </div>
-
-    <button
-      id="streamSourceMenuClose"
-      ref="streamSourceMenuClose"
-      class="actionButton"
-      @click="streamSourceMenu()"
-    >
-      Close
-    </button>
-  </div>
-
-  <!-- ID interaction -->
-  <div class="container" ref="container">
-    <div class="box">
-      <!-- Receiver -->
-      <div style="font-weight: bold">Host</div>
-      <button id="refreshButton" @click="refreshMap(0)">Refresh</button>
-      <button id="openRoomInfoButton" @click="openRoomInfo()">Room Info</button><br />
-      <button @click="peer.reconnect">Reconnect to Peer Server</button>
-
-      <div id="myid" ref="myid" style="font-weight: bold">Connecting to PeerServer...</div>
-      <div id="status" ref="status" style="font-weight: bold">
-        Status: Waiting to Connecting to PeerServer...
-      </div>
-      <input type="checkbox" id="ifAutoReconnect" ref="ifAutoReconnect" checked />Automatic Reconnection<br />
-    </div>
-    <div class="box">
-      <button @click="fullWebVideo()" id="fullScreen" ref="fullScreen">Full Page Video</button
-      ><br />
-      <div>
-        <img id="myIcon" style="width: 32px; height: 32px" />
-        <div style="display: inline-block">
-          Custome Avatar & Name<br /><input
+      <!-- Message box -->
+      <div id="chatContainer">
+        <div class="chat-room-head">
+          <span id="sumOfRoom">Members: {{ sumOfRoom }}</span
+          ><br />
+          <div class="auto-clean-check">
+            <input
+              type="checkbox"
+              id="ifAutoClean"
+              ref="ifAutoClean"
+            />Auto-clean Msgs[max->100]
+          </div>
+        </div>
+        <div
+          id="chatBox"
+          ref="chatBox"
+          @mouseover="
+            () => {
+              ifAutoScroll = false;
+            }
+          "
+          @mouseout="
+            () => {
+              ifAutoScroll = true;
+            }
+          "
+        ></div>
+        <div class="sendInput">
+          <!-- Send box -->
+          <input
             type="text"
-            ref="MyName"
-            id="name"
-            placeholder="Input your name here..."
+            id="sendMessageBox"
+            ref="sendMessageBox"
+            @keypress="enter"
+            placeholder="Input message here..."
+            autofocus="true"
           />
+          <el-button id="uploadImgel-button">Img</el-button>
+          <el-button id="sendel-button" ref="sendel-button" @click="sendMsg()">
+            Send</el-button
+          ><br />
+          <input
+            id="msgImgInput"
+            ref="msgImgInput"
+            type="file"
+            onchange="sendImg()"
+            style="display: none"
+          />
+          <el-button @click="cleanMsg()">CleanMsgs</el-button><br />
         </div>
-        <br />
-        <input type="file" name="icon" id="uploadIcon" onchange="iconInput()" />
-      </div>
-    </div>
-    <div class="box">
-      <span id="sumOfRoom" ref="sumOfRoom">Members: 1</span><br />
-      <input type="checkbox" id="ifAutoClean" ref="ifAutoClean" />Auto-clean Msgs[max->100]<br />
-      <button @click="cleanMsg()">CleanMsgs</button><br />
-    </div>
-  </div>
-
-  <!-- Live interaction-->
-  <div class="videoBox">
-    <!--PS: if no video(maybe leaded by autoplay), try to click it to play(or F12 check the stream)-->
-    <video id="webVideo" ref="WebVideo" controls autoplay></video>
-    <!-- Message box -->
-    <div id="chatContainer">
-      <div
-        id="chatBox"
-        ref="chatBox"
-        @mouseover="
-          () => {
-            ifAutoScroll = false
-          }
-        "
-        @mouseout="
-          () => {
-            ifAutoScroll = true
-          }
-        "
-      ></div>
-      <div class="sendInput">
-        <!-- Send box -->
-        <input
-          type="text"
-          id="sendMessageBox"
-          ref="sendMessageBox"
-          @keypress="enter"
-          placeholder="Input message here..."
-          autofocus="true"
-        />
-        <button type="button" id="uploadImgButton">Img</button>
-        <button type="button" id="sendButton" ref="sendButton" @click="sendMsg()">Send</button
-        ><br />
-        <input
-          id="msgImgInput"
-          ref="msgImgInput"
-          type="file"
-          onchange="sendImg()"
-          style="display: none"
-        />
       </div>
     </div>
   </div>
 </template>
 <script lang="ts" setup>
 /* eslint-disable */
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, toRef } from 'vue'
 import { Peer, DataConnection, MediaConnection } from 'peerjs'
+import { toRefs } from 'vue'
+import {useRoute, type LocationQueryValue} from 'vue-router'
 // @ts-ignore
 import SrsRtcPlayerAsync from '@/utils/srs.sdk.js'
 const peer = new Peer({ debug: 2 })
-
+const route=useRoute()
+const roomName = ref("瓶子君152");
+const roomAbout = ref("周二读书会");
 let conn: DataConnection
 let mediaOpen: MediaConnection | null = null
 let openInfoTimes = 0
@@ -250,14 +147,14 @@ let fullWebVideoTimes = 0
 let myIcon = ''
 let temporaryChosedNodes = new Array()
 let awaitedNodeId: string | null = null
-let urlId = params.get('id')
-let urlName: string | null = params.get('name')
+let urlId:LocationQueryValue=route.query.id as LocationQueryValue
+let urlName:LocationQueryValue=route.query.name as LocationQueryValue
 const LiveTitle = ref<HTMLDivElement>()
-const LiveSummary = ref<HTMLTextAreaElement>()
-const LiveCoverURL = ref<HTMLInputElement>()
-const MyName = ref<HTMLInputElement>()
-const myid = ref<HTMLDivElement>()
-const status = ref<HTMLDivElement>()
+const LiveSummary = ref<string>()
+const LiveCoverURL = ref<string>('public/images/eden.png')
+let MyName = ref<string>('hello world')
+// const myid = ref<HTMLDivElement>()
+// const status = ref<HTMLDivElement>()
 const streamSource = ref<HTMLDivElement>()
 const chatBox = ref<HTMLElement>()
 const sendMessageBox = ref<HTMLInputElement>()
@@ -266,15 +163,15 @@ const liveSetting = ref<HTMLDivElement>()
 const openRoomInfoDiv = ref<HTMLElement>()
 const connectButton = ref<HTMLElement>()
 const peerId = ref<HTMLInputElement>()
-const sumOfRoom = ref<HTMLSpanElement>()
+const sumOfRoom = ref<number>()
 const onlyPC = ref<HTMLDivElement>()
 const streamUrlSRS = ref<HTMLInputElement>()
 const lendAimId = ref<HTMLInputElement>()
 const block0 = ref<HTMLDivElement>()
 const block1 = ref<HTMLDivElement>()
-const roomTitle = ref<HTMLDivElement>()
-const roomSummary = ref<HTMLTextAreaElement>()
-const roomCover = ref<HTMLImageElement>()
+const roomTitle = ref<string>()
+const roomSummary = ref<string>()
+const roomCover = ref<string>()
 const streamSourceMenuClose = ref<HTMLButtonElement>()
 const ifNotDisplayLocalStream = ref<HTMLInputElement>()
 const ifUseCamera = ref<HTMLInputElement>()
@@ -292,12 +189,13 @@ let hereNode = new Array()
 onMounted(() => {
   // Listen for the event when a Peer connection is successfully opened
   // *Explanation: The provided code snippet is using the Peer.js library to establish a Peer connection. The peer.on('open', ...) code block is listening for the 'open' event, which is triggered when the Peer connection is successfully opened.
+
+  // console.log(route.query)
   peer.on('open', (id) => {
-    MyName.value!.value = urlName!
+    MyName.value = urlName!
     hereNode = [1, 0, 0, [], id, getMyName(), []]
-    console.log(id)
-    myid.value!.innerHTML = 'Your Id:<br/>' + id
-    status.value!.innerHTML = 'Status: Connecting to Live Room...'
+    console.log('Your ID:'+id)
+   ElMessage.warning('Status: Connecting to Live Room...')
     tryConnect(0, urlId!, false,false) // try to connect to the room
   })
   // When a new connection request is received, this code creates a data channel and sends the local or remote stream (if available) and text messages.
@@ -454,22 +352,6 @@ onMounted(() => {
     mediaOpen.answer()
   })
 
-  MyName.value!.addEventListener(
-    'focusout',
-    () => {
-      if (MyName.value!.value != nodesMap[8] && MyName.value!.value) {
-        nodesMap[8] = MyName.value!.value
-        childNodes[5] = MyName.value!.value
-        liveSend(nodesMap)
-        if (root) {
-          if (root.open) {
-            root.send(nodesMap)
-          }
-        }
-      }
-    },
-    true
-  )
   // destroy connection when someone closed the web
   window.addEventListener('beforeunload', (event) => {
     if (audiences[0]) {
@@ -502,49 +384,6 @@ function enter(e: any) {
   }
 }
 
-function showLive() {
-  // if usr want to live
-  if (openLiveTimes == 0) {
-    openLiveTimes++
-    liveSetting.value!.style.height = '25%'
-    LiveTitle.value = nodesMap[4]
-    LiveSummary.value!.value = nodesMap[5]
-    LiveCoverURL.value!.value = coverURL
-  } else {
-    openLiveTimes = 0
-    liveSetting.value!.style.height = '0px'
-  }
-}
-
-function modify() {
-  nodesMap[4] = LiveTitle.value // nodesMap update
-  nodesMap[5] = LiveSummary.value!.value
-  if (liveCoverBase64) {
-    nodesMap[6] = liveCoverBase64
-  } else {
-    coverURL = LiveCoverURL.value!.value
-    nodesMap[6] = LiveCoverURL.value!.value
-  }
-  liveSend(nodesMap)
-  if (root) {
-    if (root.open) {
-      root.send(nodesMap)
-    }
-  }
-  showLive()
-}
-
-function openRoomInfo() {
-  // top menu for showing the detail of room
-  if (openInfoTimes == 0) {
-    openInfoTimes++
-    openRoomInfoDiv.value!.style.height = '25%'
-    refreshMap(0)
-  } else {
-    openInfoTimes = 0
-    openRoomInfoDiv.value!.style.height = '0px'
-  }
-}
 
 function recorder(data: any) {
   let sameId = childNodes.indexOf(data[4]) // locate old data
@@ -579,7 +418,7 @@ function recorder(data: any) {
     }
   }
   liveSend(nodesMap)
-  sumOfRoom.value!.innerHTML = 'Members: ' + nodesMap[2].length
+  sumOfRoom.value =nodesMap[2].length
 }
 
 // 添加
@@ -655,61 +494,13 @@ function echoNodesMap(arr: any, layerNumber: any, aimId: any, fnOfEcho: any) {
 }
 
 function refreshMap(fnOfEcho: any) {
-  roomTitle.value!.innerHTML = nodesMap[4]
-  roomSummary.value!.value = nodesMap[5]
-  roomCover.value!.src = nodesMap[6]
+  roomTitle.value = nodesMap[4]
+  roomSummary.value = nodesMap[5]
+  roomCover.value = nodesMap[6]
   echoNodesMap(nodesMap[9], 0, undefined, fnOfEcho) // refresh the menu
 }
 
-function useDisplayMedia() {
-  navigator.mediaDevices
-    .getDisplayMedia({ video: true, audio: true })
-    .then((stream) => {
-      // After successfully obtaining the local stream, display it on the page.
-      if (!ifNotDisplayLocalStream.value!.checked) {
-        console.log(stream)
-        displayStream(stream) // for debug
-      } else {
-        WebVideo.value!.srcObject = null
-      }
-      localStream = stream
-      console.log('Local stream shared')
-    })
-    .catch((error) => {
-      console.error('Error getting local stream:', error)
-    })
-}
 
-function askNavigatorMediaDevices() {
-  let constraints = { audio: ifUseCamera.value!.checked, video: ifUseMicrophone.value!.checked }
-  navigator.mediaDevices
-    .getUserMedia(constraints)
-    .then(function (stream) {
-      // After successfully obtaining the local stream, display it on the page.
-      if (!ifNotDisplayLocalStream.value!.checked) {
-        displayStream(stream) // for debug
-      } else {
-        WebVideo.value!.srcObject = null
-      }
-      localStream = stream
-      console.log('Local stream shared')
-    })
-    .catch(function (err) {
-      console.error('Error getting local stream:', err)
-    })
-}
-
-function shareSRSMediaStream(url: string) {
-  url = 'webrtc://' + url
-  const rtcPlayer = new SrsRtcPlayerAsync()
-  rtcPlayer.play(url)
-  localStream = rtcPlayer.stream
-  if (!ifNotDisplayLocalStream.value!.checked) {
-    displayStream(rtcPlayer.stream) // for debug
-  } else {
-    WebVideo.value!.srcObject = null
-  }
-}
 function tryConnect(object: number, id: string, ifJump: boolean, ifAskForMediaStream: boolean) {
   // object:
   // 0: parent
@@ -730,7 +521,7 @@ function tryConnect(object: number, id: string, ifJump: boolean, ifAskForMediaSt
       parent.on('open', () => {
         // changingParentConnection = false;
         parent!.send(hereNode);
-        status.value!.innerHTML = "Status: Connected to Live Room Successfully!"
+        ElMessage.success("Status: Connected to Live Room Successfully!")
         appearMsg([0, null, "System", "Connected successfully"]);
       });
 
@@ -765,43 +556,6 @@ function tryConnect(object: number, id: string, ifJump: boolean, ifAskForMediaSt
           case 3:
 
           console.log('parent.on case data[0]:3 is happened')
-          // for single version
-            // if (data[2] > 0 || data[3] == true) {    // if it isn't the first node without correct parent node -> didn't auto changing the parent node
-            //   RemoteVideo.src = null;
-            //   remoteStream = null;
-            //   mediaOpen!.close();
-            //   data[2]++;
-            //   // optional setting
-            //   // if(data[2]%5 == 0){
-            //   //     autoJoin(nodesMap, 2, 0);
-            //   // }
-            //   liveSend(data);
-            //   status.value!.innerHTML = "Status: awaitng parent node autoReConnect to room( You can also ReConnect by yourself)!"
-            //   // get the new nodeMap
-            //   guest = peer.connect(nodesMap[7])
-            //   guest.on('data', (data: any[]) => {
-            //     nodesMap = data;
-            //     autoJoin(3);
-            //     guest.close();
-            //   })
-            //   break;
-            // }
-            // // changingParentConnection = true;
-            // parent.close();
-            // if (ifAutoReconnect.value!.checked) {
-            //   data[2]++;   // report child nodes await parent autoReConntect room
-            //   liveSend(data);
-            //   // get the new nodeMap
-            //   guest = peer.connect(nodesMap[7])
-            //   guest.on('data', (data: any) => {
-            //     nodesMap = data;
-            //     autoJoin(3);
-            //     guest.close();
-            //   });
-            // } else {
-            //   data[3] = true;
-            //   liveSend(data);
-            // }
             break;
           case 4:
             // if deliver without meida stream
@@ -819,10 +573,10 @@ function tryConnect(object: number, id: string, ifJump: boolean, ifAskForMediaSt
       });
 
       parent.on('close', () => {
-        status.value!.innerHTML = "Status: Room Connection Closed. Please Refresh the Connection!"
+      ElMessage.warning( "Status: Room Connection Closed. Please Refresh the Connection!")
 
         if (ifAutoReconnect.value!.checked) {
-          status.value!.innerHTML = "Status: Reconnecting to room...";
+         ElMessage.warning("Status: Reconnecting to room...");
 
           autoJoin(3);
 
@@ -918,109 +672,23 @@ function tryConnect(object: number, id: string, ifJump: boolean, ifAskForMediaSt
         root.close()
       }
 
-      status.value!.innerHTML = 'Status: Connecting...'
+      ElMessage.warning('Status: Connecting...')
 
       root = peer.connect(id)
 
       root.on('open', () => {
         root!.send(nodesMap)
-        status.value!.innerHTML = 'Status: Connected to Root Node Successfully!'
+        ElMessage.success('Status: Connected to Root Node Successfully!')
       })
 
       root.on('close', () => {
-        status.value!.innerHTML = 'Status: Root Connection Closed!'
+        ElMessage.warning('Status: Root Connection Closed!')
         connectRoot.value!.style.visibility = 'visible'
-        // if(document.getElementById("ifAutoReconnect").checked){
-        //     document.getElementById("status").innerHTML="Status: Reconnecting to last Root Node...";
-
-        //     tryConnect(0, urlInfo[0], false);
-        // }
       })
       break
-    // case 4: // for Index
-    //   // Close old connection
-    //   if (root) {
-    //     root.close()
-    //   }
-
-    //   root = peer.connect(id)
-
-    //   root.on('open', () => {
-    //     peerId.value!.value = id
-    //     status.value.innerHTML = 'Status: Connected to Root Node Successfully!'
-    //   })
-
-    //   // Receive the reply of text: Host --> Guset
-    //   root.on('data', (data: any) => {
-    //     // Info of rooms from root received
-    //     rooms = data
-    //     appearRooms()
-    //     console.log('Room list received')
-    //   })
-
-    //   root.on('close', () => {
-    //     // root = null;
-    //     document.getElementById('status').innerHTML = 'Status: Root Connection Closed!'
-
-    //     // if(document.getElementById("ifAutoReconnect").checked){
-    //     //     document.getElementById("status").innerHTML="Status: Reconnecting to last Root Node...";
-
-    //     //     tryConnect(4, connectHistroy.slice(-1)[0], false);
-    //     //     // document.getElementById("status").innerHTML="Status: Root Reconnection Failed!";
-    //     // }
-    //   })
-    //   break
-
     default:
       console.log('tryConnect Error')
       break
-  }
-}
-function fullWebVideo() {
-  if (fullWebVideoTimes === 0) {
-    if (/Mobi|Android|iPhone/i.test(navigator.userAgent)) {
-      WebVideo.value!.style.height = window.innerWidth + 'px'
-      WebVideo.value!.style.width = window.innerHeight + 'px'
-      WebVideo.value!.style.transform = 'rotate(90deg)'
-      WebVideo.value!.style.position = 'absolute'
-      if (middleX === 0) {
-        middleX = WebVideo.value!.offsetWidth - window.innerWidth
-      }
-      WebVideo.value!.style.right = -middleX + 'px'
-      WebVideo.value!.style.top = WebVideo.value!.offsetWidth * 0.25 + 10 + 'px'
-      container.value!.style.bottom = -20 + 'px'
-      fullScreen.value!.style.position = 'absolute'
-      fullScreen.value!.style.bottom = 0 + 'px'
-    } else {
-      WebVideo.value!.style.height = window.innerHeight + 'px'
-      WebVideo.value!.style.width = window.innerWidth + 'px'
-      WebVideo.value!.style.position = 'absolute'
-      window.scrollBy({
-        top: document.documentElement.scrollHeight,
-        behavior: 'smooth',
-      })
-    }
-    fullWebVideoTimes++
-    setTimeout(function () {
-      if (fullWebVideoTimes === 1) {
-        chatBox.value!.style.visibility = 'hidden'
-      }
-    }, 3000)
-  } else {
-    if (/Mobi|Android|iPhone/i.test(navigator.userAgent)) {
-      WebVideo.value!.style.transform = 'none'
-      WebVideo.value!.style.width = '100%'
-      WebVideo.value!.style.height = '35%'
-      WebVideo.value!.style.position = 'static'
-      fullScreen.value!.style.position = 'static'
-      container.value!.style.bottom = 0 + 'px'
-      WebVideo.value!.style.position = 'static'
-    } else {
-      WebVideo.value!.style.height = '85%'
-      WebVideo.value!.style.width = '70%'
-    }
-    fullWebVideoTimes = 0
-    chatBox.value!.style.visibility = 'visible'
   }
 }
 function cleanMsg() {
@@ -1032,7 +700,7 @@ function cleanMsg() {
 }
 function sendMsg() {
   //*This line of code adds an event listener to the element with the ID "sendButton". It listens for a click event on the button and triggers the provided function when the event occurs.
-  let msg = [0, peer.id, MyName.value!.value, sendMessageBox.value!.value, msgImgBase64, myIcon] //*This line of code creates an array called "msg" and assigns it two values. The first value is the value of the element with the ID "name", and the second value is the value of the element with the ID "sendMessageBox". These values are used to construct the message that will be sent.
+  let msg = [0, peer.id, MyName.value, sendMessageBox.value!.value, msgImgBase64, myIcon] //*This line of code creates an array called "msg" and assigns it two values. The first value is the value of the element with the ID "name", and the second value is the value of the element with the ID "sendMessageBox". These values are used to construct the message that will be sent.
   if (msg[3] || msg[4]) {
     // DEBUG *This condition checks if the second element of the "msg" array (i.e., the message content) exists and is not empty.
     if (liveSend(msg) > 0) {
@@ -1052,7 +720,7 @@ function sendMsg() {
 function getMyName() {
   if (MyName) {
     if (MyName) {
-      return MyName.value!.value
+      return MyName.value
     } else {
       return peer!.id
     }
@@ -1122,19 +790,6 @@ function appearMsg(msg: any) {
 
   newMsg.appendChild(newMsgContent)
 
-  // let newMsgContent = document.createElement("div");
-  // newMsgContent.setAttribute("style", "vertical-align: middle; display: inline-block;");
-
-  // let newMsgTime = document.createElement("span");
-  // newMsgTime.appendChild(document.createTextNode("[" + now.getHours() +":"+ now.getMinutes() +":"+ now.getSeconds() + "]"));
-  // newMsgTime.classList.add("time");
-  // newMsgContent.appendChild(newMsgTime);
-
-  // let newMsgUser = document.createElement("span");
-  // newMsgUser.appendChild(document.createTextNode(msg[2] + ":"));
-  // newMsgUser.classList.add("usr");
-  // newMsgContent.appendChild(newMsgUser);
-  // newMsgContent.appendChild(document.createElement("br"));
 
   let newMsgTextContent = document.createElement('span')
   newMsgTextContent.appendChild(document.createTextNode(msg[3]))
@@ -1233,3 +888,91 @@ function autoJoin(t: number) {
   }
 }
 </script>
+<style scoped lang="scss">
+.audience {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 100%;
+  padding: 2.5rem 2.5rem 0 2.5rem;
+  margin-top: 3rem;
+}
+.live-control-box {
+  display: flex;
+  flex-direction: row;
+}
+.videoBox {
+  width: 100%;
+  height: 42.31rem;
+  display: flex;
+  flex-direction: row;
+  justify-content: start;
+  .video-player {
+    background-color: #fff8f9;
+    border-radius: 2.5rem;
+    border: solid 0.063rem #d3c2ca;
+    flex: 2;
+    overflow: hidden;
+    video {
+      width: 100%;
+      object-fit: cover;
+    }
+  }
+  .video-player-head {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 0 2rem;
+    border: solid 0.063rem #d3c2ca;
+    height: 15%;
+    &-avator {
+      height: 120%;
+      margin-right: 1rem;
+      padding: 1rem 0;
+      img {
+        height: 100%;
+        border-radius: 50%;
+        object-fit: cover;
+      }
+    }
+    &-title {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 1rem 1rem;
+      h3 {
+        margin-top: 0;
+        font-size: medium;
+        color: rgb(255, 212, 35);
+      }
+    }
+  }
+  #chatContainer {
+    display: flex;
+    flex-direction: column;
+    border-radius: 2.5rem;
+    width: 38.88rem;
+    border: solid 0.063rem #d3c2ca;
+    overflow: hidden;
+    margin: 0 1rem;
+    flex: 1;
+    #chatBox {
+      width: 100%;
+      height: 80%;
+    }
+    .sendInput {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+    }
+    .chat-room-head {
+      display: flex;
+      flex-direction: column;
+      align-items: start;
+      padding: 0 2rem;
+      border: solid 0.063rem #d3c2ca;
+      height: 5rem;
+    }
+  }
+}
+</style>

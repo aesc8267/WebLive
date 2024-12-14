@@ -1,32 +1,30 @@
 <template>
   <div class="video-player">
-    <div class="video-player-head">
-      <div class="video-player-head-avator">
-        <img src="/src/assets/images/live/152avator.avif" alt="头像" />
-      </div>
-      <div class="video-player-head-title">
-        <h2>{{ roomName }}</h2>
-        <h3>{{ roomAbout }}</h3>
-      </div>
-    </div>
+    <div class="live-mask">
+      <slot name="join"></slot>
   </div>
+</div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
 
-const roomName = ref("瓶子君152");
-const roomAbout = ref("周二读书会");
 </script>
 
 <style lang="scss" scoped>
 .video-player {
   background-color: #fff8f9;
   border-radius: 2.5rem;
-  height: 42.19rem;
   border: solid 0.063rem #d3c2ca;
   flex: 2;
   overflow: hidden;
+  // mask-image: url('/public/images/AtriYES.png');
+}
+.live-mask{
+  height: 100%;
+  width: 100%;
+  display:flex;
+  justify-content: center;
+  align-items: center;
 }
 .video-player-head {
   display: flex;
@@ -56,5 +54,10 @@ const roomAbout = ref("周二读书会");
       color: rgb(255, 212, 35);
     }
   }
+}
+.img{
+  height: 10%;
+  z-index: 99;
+  background-image: url('/public/images/AtriYES.png');
 }
 </style>
