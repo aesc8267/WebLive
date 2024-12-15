@@ -4,7 +4,7 @@
       <template #join>
         <el-input class="join-input" v-model="directConnectId" placeholder="请输入房间号" @keyup.enter="join">
           <template #suffix>
-            <img src="/src/assets/images/AtriYES.png" alt="atri" class="atri" >
+            <img src="/src/assets/images/AtriYES.png" alt="atri" class="atri" @click="join">
           </template>
         </el-input>
       </template>
@@ -215,10 +215,13 @@ function join(){
 .live-room{
   display: flex;
   flex-direction: row;
+  justify-content: center;
   width: 100%;
   height: 47.31rem;
   padding: 2.5rem;
   margin-top: 3rem;
+  overflow: hidden;
+
 }
 
 .join-input{
@@ -237,6 +240,7 @@ function join(){
 .atri{
   padding-left: 0.4rem;
   height: 120%;
+  cursor: pointer;
 }
 }
 </style>

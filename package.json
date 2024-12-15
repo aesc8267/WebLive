@@ -15,6 +15,7 @@
   "dependencies": {
     "@types/hls.js": "^0.13.3",
     "@vitejs/plugin-legacy": "^6.0.0",
+    "axios": "^1.7.9",
     "element-plus": "^2.9.0",
     "hls.js": "^1.5.17",
     "lodash": "^4.17.21",

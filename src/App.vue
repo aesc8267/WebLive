@@ -1,9 +1,38 @@
 <template>
   <div class="app">
-    <LiveHead v-model="is_close" @wheel="handleWheel"></LiveHead>
+    <LiveHead
+      :isClose="is_close"
+      :changeDialog="changeDialog"
+      @wheel="handleWheel"
+    ></LiveHead>
     <RouterView @wheel="handleWheel($event, true)"></RouterView>
     <LiveFooter @wheel="handleWheel"></LiveFooter>
     <LiveAbout @wheel="handleWheel"></LiveAbout>
+    <el-dialog v-model="dialog" title="登录" width="400">
+      <el-form label-width="100px" >
+        <el-form-item label="用户名">
+          <el-input v-model.trim="username"></el-input>
+        </el-form-item>
+        <el-form-item label="密码">
+          <el-input type="password" v-model.trim="password"></el-input>
+        </el-form-item>
+        <el-form-item label="请确认密码" :class="{ disappear: !showSignUp }">
+          <el-input type="password" v-model.trim="confirm_password"></el-input>
+        </el-form-item>
+        <el-form-item label="请上传头像" :class="{ disappear: !showSignUp }">
+          <el-input class="input-file" type="file" v-model.trim="avatar" accept="image/*"></el-input>
+        </el-form-item>
+        <el-form-item>
+          <el-button
+            :class="{ disappear: showSignUp }"
+            type="primary"
+            @click="signIn"
+            >登录</el-button
+          >
+          <el-button type="primary" @click="signUp">注册</el-button>
+        </el-form-item>
+      </el-form>
+    </el-dialog>
   </div>
 </template>
 <script setup lang="ts">
@@ -13,34 +42,95 @@ import LiveFooter from "./components/LiveFooter.vue";
 import LiveAbout from "./components/LiveAbout.vue";
 import { RouterView } from "vue-router";
 import { onMounted, ref } from "vue";
-import {debounce} from 'lodash'
-// import { RouterView } from 'vue-router';
-onMounted(()=>{
-  ElMessage.warning("hello world")
-})
+import { debounce } from "lodash";
+import axios from "axios";
 
-const is_close = ref<boolean>(false);
-const handleWheel = debounce(handleWheelOri, 100)
-function handleWheelOri(event: WheelEvent, is_live?: boolean) {
-  const d=document.documentElement.scrollTop
-  if (event.deltaY > 0) {
-    if(d<=64){
-      // event.preventDefault();
-      is_close.value=true;
+const avatar=ref<string>()
+const currentTime=new Date();
+const dialog = ref<boolean>(false);
+const username = ref<string>("");
+const password = ref<string>("");
+const showSignUp = ref<boolean>(false);
+const confirm_password = ref<string>("");
+const signIn = () => {
+  axios
+    .post("/api/users/login", {
+      username: username.value,
+      password: password.value,
+    })
+    .then((res) => {
+      console.log(res);
+      if (res.data.state == 200) {
+        ElMessage.success("登录成功");
+        dialog.value = false;
+        return;
+      } else {
+        ElMessage.error(res.data.message);
+      }
+    });
+  return;
+};
+const signUp = () => {
+  if (!showSignUp.value) showSignUp.value = true;
+  else {
+    if (password.value != confirm_password.value) {
+      ElMessage.error("两次密码不一致");
+      return;
     }
-    else if(is_close.value) return;
+    console.log(username.value)
+    // console.log(avatar.value);
+    axios.post("/api/users/reg", {
+      createdUser: username.value,
+      createdTime: currentTime,
+      modifiedUser: username.value,
+      modifiedTime: currentTime,
+      // uid: 0,
+      username: username.value,
+      password: password.value,
+      // salt: "string",
+      // phone: "string",
+      // email: "string",
+      // gender: 0,
+      avatar: avatar.value,
+      // isDelete: 0,
+    }).then((res)=>{
+      console.log(username.value)
+      console.log(res);
+    });
+
+    ElMessage.success("注册成功");
+    showSignUp.value = false;
+    dialog.value = false;
+    return;
+  }
+};
+
+// import { RouterView } from 'vue-router';
+onMounted(() => {
+  ElMessage.warning("hello world");
+});
+function changeDialog() {
+  dialog.value = true;
+}
+const is_close = ref<boolean>(false);
+const handleWheel = debounce(handleWheelOri, 100);
+function handleWheelOri(event: WheelEvent, is_live?: boolean) {
+  const d = document.documentElement.scrollTop;
+  if (event.deltaY > 0) {
+    if (d <= 64) {
+      // event.preventDefault();
+      is_close.value = true;
+    } else if (is_close.value) return;
     else is_close.value = true;
     return;
   } else if (event.deltaY < 0) {
-    console.log(event.deltaY)
-    if(event.deltaY+d<=64) is_close.value = false;
+    console.log(event.deltaY);
+    if (event.deltaY + d <= 64) is_close.value = false;
     else if (is_live) {
-
       console.log("直播中不可以！");
-      return ;
-    }
-    else if(is_close.value) is_close.value = false;
-    return
+      return;
+    } else if (is_close.value) is_close.value = false;
+    return;
   }
 }
 </script>
@@ -54,5 +144,15 @@ function handleWheelOri(event: WheelEvent, is_live?: boolean) {
   width: 100%;
   overflow-y: auto;
   overflow-x: hidden;
+}
+.disappear {
+  display: none;
+}
+.input-file{
+  :deep(.el-input__wrapper){
+    display: flex;
+    justify-content: start;
+    padding: 0;
+  }
 }
 </style>
