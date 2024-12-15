@@ -253,26 +253,7 @@
       </a>
     </div>
     <div class="live-nav-avator" @click="changeFaDialog">
-      <svg
-        width="80"
-        height="86"
-        viewBox="0 0 80 86"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <circle cx="40" cy="43" r="39.5" fill="#D9D9D9" stroke="#847375" />
-        <text
-          x="50%"
-          y="50%"
-          font-family="Arial"
-          font-size="21"
-          fill="rgb(202, 73, 106)"
-          text-anchor="middle"
-          dominant-baseline="middle"
-        >
-          点我登录
-        </text>
-      </svg>
+      <img :src="avatar" alt="头像" />
     </div>
   </div>
 </template>
@@ -283,17 +264,25 @@ import { RouterLink } from "vue-router";
 const searchInfo = ref("");
 import { onMounted, ref, computed, toRefs } from "vue";
 import { Peer, DataConnection } from "peerjs";
+let avatar=ref<string>()
+onMounted(() => {
+  let temp = localStorage.getItem("avatar");
+  if (temp !== null) {
+    avatar.value = temp;
+    console.log(temp);
+  } else {
+    avatar.value = "/src/assets/images/avatar.svg";
+  }
+});
 const props = defineProps<{
-  isClose: boolean,
-  changeDialog: Function
+  isClose: boolean;
+  changeDialog: Function;
 }>();
-let { isClose,changeDialog } = toRefs(props);
-
-
+let { isClose, changeDialog } = toRefs(props);
 
 const engine = "https://www.bing.com/?q=";
-function changeFaDialog(){
-  changeDialog.value()
+function changeFaDialog() {
+  changeDialog.value();
 }
 const search = () => {
   window.open(engine + searchInfo.value, "_blank");
@@ -376,8 +365,12 @@ const search = () => {
 .is-close {
   transform: translate(0, -100%);
 }
-.live-nav-avator{
-  margin-right:1rem;
+.live-nav-avator {
+  margin-right: 1rem;
   height: 130%;
+  img {
+    height: 100%;
+    object-fit: cover;
+  }
 }
 </style>

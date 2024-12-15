@@ -9,7 +9,7 @@
     <LiveFooter @wheel="handleWheel"></LiveFooter>
     <LiveAbout @wheel="handleWheel"></LiveAbout>
     <el-dialog v-model="dialog" title="登录" width="400">
-      <el-form label-width="100px" >
+      <el-form label-width="100px">
         <el-form-item label="用户名">
           <el-input v-model.trim="username"></el-input>
         </el-form-item>
@@ -20,7 +20,12 @@
           <el-input type="password" v-model.trim="confirm_password"></el-input>
         </el-form-item>
         <el-form-item label="请上传头像" :class="{ disappear: !showSignUp }">
-          <el-input class="input-file" type="file" v-model.trim="avatar" accept="image/*"></el-input>
+          <el-input
+            class="input-file"
+            type="file"
+            v-model.trim="avatar"
+            accept="image/*"
+          ></el-input>
         </el-form-item>
         <el-form-item>
           <el-button
@@ -45,24 +50,36 @@ import { onMounted, ref } from "vue";
 import { debounce } from "lodash";
 import axios from "axios";
 
-const avatar=ref<string>()
-const currentTime=new Date();
+const avatar = ref<string>();
+// const currentTime = new Date();
 const dialog = ref<boolean>(false);
 const username = ref<string>("");
 const password = ref<string>("");
 const showSignUp = ref<boolean>(false);
 const confirm_password = ref<string>("");
 const signIn = () => {
+  console.log(username.value, password.value);
   axios
-    .post("/api/users/login", {
-      username: username.value,
-      password: password.value,
-    })
+    .post(
+      "/api/users/login",
+      {},
+      {
+        params: {
+          username: username.value,
+          password: password.value,
+        },
+      }
+    )
     .then((res) => {
       console.log(res);
       if (res.data.state == 200) {
         ElMessage.success("登录成功");
         dialog.value = false;
+        const avatarUrl:string= res.data.data.avatar;
+        localStorage.setItem("avatar", avatarUrl);
+        localStorage.setItem("username", username.value);
+        // localStorage.setItem("password", password.value);
+        localStorage.setItem("isLogin", "true");
         return;
       } else {
         ElMessage.error(res.data.message);
@@ -77,36 +94,52 @@ const signUp = () => {
       ElMessage.error("两次密码不一致");
       return;
     }
-    console.log(username.value)
+    console.log(username.value);
     // console.log(avatar.value);
-    axios.post("/api/users/reg", {
-      createdUser: username.value,
-      createdTime: currentTime,
-      modifiedUser: username.value,
-      modifiedTime: currentTime,
-      // uid: 0,
-      username: username.value,
-      password: password.value,
-      // salt: "string",
-      // phone: "string",
-      // email: "string",
-      // gender: 0,
-      avatar: avatar.value,
-      // isDelete: 0,
-    }).then((res)=>{
-      console.log(username.value)
-      console.log(res);
-    });
+    axios
+      .post(
+        "/api/users/reg",
+        {},
+        {
+          params: {
+            // createdUser: username.value,
+            // createdTime: currentTime,
+            // modifiedUser: username.value,
+            // modifiedTime: currentTime,
+            // uid: 0,
+            username: username.value,
+            password: password.value,
+            // salt: "string",
+            // phone: "string",
+            // email: "string",
+            // gender: 0,
+            avatar: avatar.value,
+            // isDelete: 0,
+          },
+        }
+      )
+      .then((res) => {
+        if (res.data.state == 200) {
+        ElMessage.success("注册成功");
+        dialog.value = false;
+        showSignUp.value = false;
+        console.log(avatar.value);  
+        localStorage.setItem("avatar", avatar.value as string);
+        localStorage.setItem("username", username.value);
+        localStorage.setItem("isLogin", "true");
+        return;
+      } else {
+        ElMessage.error(res.data.message);
+      }
+      });
 
-    ElMessage.success("注册成功");
-    showSignUp.value = false;
-    dialog.value = false;
     return;
   }
 };
 
 // import { RouterView } from 'vue-router';
 onMounted(() => {
+  console.log(localStorage.getItem("isLogin"));
   ElMessage.warning("hello world");
 });
 function changeDialog() {
@@ -148,8 +181,8 @@ function handleWheelOri(event: WheelEvent, is_live?: boolean) {
 .disappear {
   display: none;
 }
-.input-file{
-  :deep(.el-input__wrapper){
+.input-file {
+  :deep(.el-input__wrapper) {
     display: flex;
     justify-content: start;
     padding: 0;

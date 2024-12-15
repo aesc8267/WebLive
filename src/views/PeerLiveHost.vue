@@ -1119,12 +1119,7 @@ const roomAbout = ref("周二读书会");
   padding: 2.5rem 2.5rem 0 2.5rem;
   margin-top: 3rem;
 }
-#liveSetting {
-}
-#openRoomInfo {
-}
-#streamSource {
-}
+
 .live-control-box {
   display: flex;
   flex-direction: row;

@@ -1,0 +1,20 @@
+      <svg
+        width="80"
+        height="86"
+        viewBox="0 0 80 86"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <circle cx="40" cy="43" r="39.5" fill="#D9D9D9" stroke="#847375" />
+        <text
+          x="50%"
+          y="50%"
+          font-family="Arial"
+          font-size="21"
+          fill="rgb(202, 73, 106)"
+          text-anchor="middle"
+          dominant-baseline="middle"
+        >
+          点我登录
+        </text>
+      </svg>
