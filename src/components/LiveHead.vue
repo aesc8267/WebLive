@@ -252,9 +252,34 @@
         </svg>
       </a>
     </div>
-    <div class="live-nav-avator" @click="changeFaDialog">
-      <img :src="avatar" alt="头像" />
+    <div
+      :class="['live-nav-avator', { 'not-show': isShow }]"
+      @click="changeFaDialog"
+    >
+      <img src="/src/assets/images/avatar.svg" alt="头像" />
     </div>
+    <el-dropdown :class="{ 'not-show': !isShow }">
+      <div class="live-nav-avator">
+        <img :src="avatar" alt="头像" />
+      </div>
+      <template #dropdown>
+        <el-dropdown-menu>
+          <el-dropdown-item @click="changeFaDialog">修改信息</el-dropdown-item>
+          <el-dropdown-item>修改密码</el-dropdown-item>
+          <el-dropdown-item @click="logout">退出登录</el-dropdown-item>
+        </el-dropdown-menu>
+      </template>
+    </el-dropdown>
+    <el-dialog v-model="showChangeInfo" title="修改密码" width="30%">
+      <el-form>
+        <el-form-item label="旧密码">
+          <el-input type="password" v-model="oldPassword"></el-input>
+        </el-form-item>
+        <el-form-item label="新密码">
+          <el-input type="password" v-model="newPassword"></el-input>
+        </el-form-item>
+      </el-form>
+      </el-dialog>
   </div>
 </template>
 
@@ -264,23 +289,37 @@ import { RouterLink } from "vue-router";
 const searchInfo = ref("");
 import { onMounted, ref, computed, toRefs } from "vue";
 import { Peer, DataConnection } from "peerjs";
-let avatar=ref<string>()
-onMounted(() => {
-  let temp = localStorage.getItem("avatar");
-  if (temp !== null) {
-    avatar.value = temp;
-    console.log(temp);
-  } else {
-    avatar.value = "/src/assets/images/avatar.svg";
-  }
-});
+let newPassword=ref<string>("");
+let oldPassword=ref<string>("");
+let avatar = ref<string>();
+let isShow = ref<boolean>(false);
+let showChangeInfo=ref<boolean>(false);
 const props = defineProps<{
   isClose: boolean;
   changeDialog: Function;
 }>();
 let { isClose, changeDialog } = toRefs(props);
 
+
+
+const logout = () => {
+  localStorage.clear();
+  window.location.reload();
+};
 const engine = "https://www.bing.com/?q=";
+onMounted(() => {
+  let isLogin = localStorage.getItem("isLogin");
+  if (isLogin) {
+    isShow.value = true;
+  }
+  let temp = localStorage.getItem("avatar");
+  if (temp !== null) {
+    avatar.value = "/public/avatar/" + temp;
+    console.log(temp);
+  } else {
+    avatar.value = "/src/assets/images/avatar.svg";
+  }
+});
 function changeFaDialog() {
   changeDialog.value();
 }
@@ -366,11 +405,21 @@ const search = () => {
   transform: translate(0, -100%);
 }
 .live-nav-avator {
+  position: relative;
+  right: 1.5rem;
   margin-right: 1rem;
-  height: 130%;
+  height: 3rem;
+  width: 3rem;
+  border-radius: 50%;
+  overflow: hidden;
+  // border: #81737a solid 0.063rem;
+  margin: 0 0.1rem 0.3rem 0;
   img {
-    height: 100%;
+    height: 110%;
     object-fit: cover;
   }
+}
+.not-show {
+  display: none;
 }
 </style>

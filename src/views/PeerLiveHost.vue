@@ -83,10 +83,15 @@ const fullScreen = ref<HTMLButtonElement>();
 const msgImgInput = ref<HTMLInputElement>();
 const ifAutoClean = ref<HTMLInputElement>();
 let coverURL = "";
-
+const avatar='/public/avatar/'+localStorage.getItem("avatar");
+const isLogIn=localStorage.getItem("isLogin")==="true";
 onMounted(() => {
   // Listen for the event when a Peer connection is successfully opened
   // *Explanation: The provided code snippet is using the Peer.js library to establish a Peer connection. The peer.on('open', ...) code block is listening for the 'open' event, which is triggered when the Peer connection is successfully opened.
+  if(!isLogIn) {
+    ElMessage.error("Please login first");
+    window.location.href="/"
+  }
   peer.on("open", (id) => {
     if (LiveTitle.value || LiveSummary.value || LiveCoverURL.value) {
       nodesMap = [
@@ -1006,7 +1011,7 @@ const roomAbout = ref("周二读书会");
       <div class="video-player">
         <div class="video-player-head">
           <div class="video-player-head-avator">
-            <img src="/src/assets/images/live/152avator.avif" alt="头像" />
+            <img :src=avatar alt="头像" />
           </div>
           <div class="video-player-head-title">
             <h2>{{ roomName }}</h2>
@@ -1110,7 +1115,8 @@ const roomAbout = ref("周二读书会");
     </div>
   </div>
 </template>
-<style scoped lang="scss">
+<style scoped lang="scss" >
+@use '../assets/drawer.scss';
 .host {
   display: flex;
   flex-direction: column;
@@ -1198,4 +1204,5 @@ const roomAbout = ref("周二读书会");
     }
   }
 }
+
 </style>

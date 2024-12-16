@@ -1,0 +1,89 @@
+// 设置全局变量，方便调整色调
+$primary-color: #B8B8B8; // 轻灰色
+$secondary-color: #D0D0D0; // 浅灰色
+$accent-color: #E9E9E9; // 更浅灰色
+$text-color: #333333; // 深灰色
+$border-color: #E0E0E0; // 浅灰色边框
+
+// 通用样式
+#liveSetting, #openRoomInfo, #streamSource {
+  padding: 20px;
+  background-color: $accent-color; // 背景色使用浅粉色
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); // 增加阴影，提升层次感
+}
+
+// 控制图片的样式
+#LiveCover, #roomCover {
+  max-width: 100%;
+  max-height: 200px;
+  border-radius: 8px;
+  object-fit: cover;
+  margin-bottom: 15px;
+}
+
+#liveSetting input,
+#liveSetting textarea,
+#openRoomInfo input,
+#openRoomInfo textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid $border-color;
+  border-radius: 6px;
+  margin-top: 10px;
+  background-color: #fff;
+  color: $text-color;
+}
+
+#liveSetting textarea,
+#openRoomInfo textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+#liveSetting .el-button,
+#openRoomInfo .el-button,
+#streamSource .el-button {
+  background-color: $primary-color;
+  border: none;
+  border-radius: 4px;
+  color: white;
+  margin-top: 10px;
+  padding: 8px 16px;
+  cursor: pointer;
+  
+  &:hover {
+    background-color: ($primary-color, 10%);
+  }
+}
+
+// 为按钮增加不同的视觉反馈
+#closeLiveMenu, #modify, #closeInfo, #streamSourceMenuClose {
+  background-color: $secondary-color;
+  border: none;
+  
+  &:hover {
+    background-color: ($secondary-color, 5%);
+  }
+}
+
+// 处理表格容器及元素
+#roomTitle, #roomSummary {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: $text-color;
+}
+
+// 设置容器样式，保持居中
+#roomText, #nodeInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.box {
+  background-color: $accent-color;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
