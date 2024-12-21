@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 /* eslint-disable */
-import { onBeforeMount, onBeforeUnmount, onMounted, onUnmounted, ref } from "vue";
+import { computed, onBeforeMount, onBeforeUnmount, onMounted, onUnmounted, ref } from "vue";
 import { Peer, DataConnection, MediaConnection } from "peerjs";
 // @ts-ignore
 import SrsRtcPlayerAsync from "@/utils/srs.sdk.js";
@@ -340,7 +340,7 @@ function recorder(data: any) {
   nodesMap = [
     1,
     1,
-    getRoomIds(),
+    nodesMap[2],
     0,
     nodesMap[4],
     nodesMap[5],
@@ -349,7 +349,9 @@ function recorder(data: any) {
     getMyName(),
     childNodes,
     urlInfo[0],
-  ]; //record this node's info
+  ];
+  nodesMap[2] = getRoomIds();
+  //record this node's info
   if (root) {
     if (root.open) {
       root.send(nodesMap);
@@ -786,6 +788,7 @@ function appearMsg(msg: any) {
   }
 }
 function getRoomIds() {
+  console.log(nodesMap)
   roomIds = new Array();
   recursiveSearch(nodesMap[9], 999); // DEBUG 999 -> + infinite
   roomIds.push(nodesMap[7]); // host id
@@ -798,8 +801,9 @@ function displayStream(stream: any) {
   WebVideo.value!.srcObject = stream;
 }
 function recursiveSearch(arr: Array<any>, t: number) {
+  console.log(arr)
   for (let i = 7; i < arr.length; i = i + 3) {
-    if (arr[i] && arr[i + 2] instanceof Array) {
+    if (arr[i] && arr[i + 2] ) {
       if (arr[i + 2][2] < t) {
         roomIds.push(arr[i]);
       }
