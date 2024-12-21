@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 /* eslint-disable */
-import { onMounted, ref } from "vue";
+import { onBeforeMount, onBeforeUnmount, onMounted, onUnmounted, ref } from "vue";
 import { Peer, DataConnection, MediaConnection } from "peerjs";
 // @ts-ignore
 import SrsRtcPlayerAsync from "@/utils/srs.sdk.js";
@@ -49,7 +49,7 @@ let fullWebVideoTimes = 0;
 let myIcon = "";
 let temporaryChosedNodes = new Array();
 
-const LiveTitle = ref<HTMLDivElement>();
+const LiveTitle = ref<string>();
 // const LiveSummary = ref<HTMLTextAreaElement>();
 const LiveSummary = ref<string>("hello world");
 // const LiveCoverURL = ref<HTMLInputElement>();
@@ -83,17 +83,17 @@ const fullScreen = ref<HTMLButtonElement>();
 const msgImgInput = ref<HTMLInputElement>();
 const ifAutoClean = ref<HTMLInputElement>();
 let coverURL = "";
-const avatar='/public/avatar/'+localStorage.getItem("avatar");
-const isLogIn=localStorage.getItem("isLogin")==="true";
+const avatar = "/public/avatar/" + localStorage.getItem("avatar");
+const isLogIn = localStorage.getItem("isLogin") === "true";
 onMounted(() => {
   // Listen for the event when a Peer connection is successfully opened
   // *Explanation: The provided code snippet is using the Peer.js library to establish a Peer connection. The peer.on('open', ...) code block is listening for the 'open' event, which is triggered when the Peer connection is successfully opened.
-  if(!isLogIn) {
+  if (!isLogIn) {
     ElMessage.error("Please login first");
-    window.location.href="/"
+    window.location.href = "/";
   }
+  // 这里有问题，这段代码写的太垃圾了，通过livetitle 的值是否位null 判断是否是refash还是url 新建，ex！
   peer.on("open", (id) => {
-    if (LiveTitle.value || LiveSummary.value || LiveCoverURL.value) {
       nodesMap = [
         1,
         1,
@@ -107,26 +107,11 @@ onMounted(() => {
         childNodes,
         urlInfo[0],
       ];
-    } else {
       //childNodes=[0.dataType, 1.sourceMark, 2.NumberOfchildNodes, 3.unused for you ]
       childNodes = [1, 1, 0, [], id, getMyName(), []];
       //nodesMap=[0.dataType, 1.sourceMark, 2.idsOfMembersInRoom, 3.roomType]
-      nodesMap = [
-        1,
-        1,
-        [id],
-        0,
-        urlInfo[1],
-        urlInfo[2],
-        urlInfo[3],
-        id,
-        getMyName(),
-        childNodes,
-        urlInfo[0],
-      ];
-    }
     console.log(id);
-    ElMessage.success("Your ID:<br/>" + id);
+    ElMessage.success("Your ID:" + id);
     ElMessage.warning("Status: Connecting to Root Node...");
     if (urlInfo[0]) {
       tryConnect(3, urlInfo[0], false, false);
@@ -137,6 +122,7 @@ onMounted(() => {
 
   // When a new connection request is received, this code creates a data channel and sends the local or remote stream (if available) and text messages.
   peer.on("connection", (openPort) => {
+    console.log("host connection 事件触发");
     connIds.push(openPort.peer);
     conns.push(openPort);
     conn = openPort;
@@ -156,6 +142,7 @@ onMounted(() => {
       //  2: roomInfoModfied
       //  3: for reconnect: Remind the child node to replace the parent node
       //  4: for refresh: apply to the new media Stream for daliver to child
+      console.log("host data 事件触发");
       switch (data[0]) {
         case 0:
           console.log("Received data:", data);
@@ -225,6 +212,7 @@ onMounted(() => {
     });
 
     conn.on("close", () => {
+      console.log("Connection closed")
       for (let i = 0; i < conns.length; i++) {
         if (conns[i]) {
           if (conns[i].open) {
@@ -282,7 +270,11 @@ onMounted(() => {
     onlyPC.value!.remove();
   }
 });
+onBeforeUnmount(()=>{
 
+  console.log('host unmounted')
+  peer.destroy();// 清理所有peer 产生的资源
+})
 // *This function is expected to retrieve the local stream, which could be a stream from the camera or microphone.
 function streamSourceMenu() {
   streamSourceDrawer.value = false;
@@ -333,6 +325,7 @@ function openRoomInfo() {
 function recorder(data: any) {
   let sameId = childNodes.indexOf(data[4]); // locate old data
   console.log("Info of nodes updated:", data);
+  console.log(sameId)
   // let idTemp = Object.assign({}, audienceIds);     // make audiencesPeers value stable
   if (sameId === -1) {
     childNodes.push(data[4]);
@@ -1011,7 +1004,7 @@ const roomAbout = ref("周二读书会");
       <div class="video-player">
         <div class="video-player-head">
           <div class="video-player-head-avator">
-            <img :src=avatar alt="头像" />
+            <img :src="avatar" alt="头像" />
           </div>
           <div class="video-player-head-title">
             <h2>{{ roomName }}</h2>
@@ -1115,8 +1108,8 @@ const roomAbout = ref("周二读书会");
     </div>
   </div>
 </template>
-<style scoped lang="scss" >
-@use '../assets/drawer.scss';
+<style scoped lang="scss">
+@use "../assets/drawer.scss";
 .host {
   display: flex;
   flex-direction: column;
@@ -1204,5 +1197,4 @@ const roomAbout = ref("周二读书会");
     }
   }
 }
-
 </style>
