@@ -50,84 +50,84 @@ let root: any = null
 let peerId=ref<string>()
 
 //建立peerjs 连接
-onMounted(() => {
-  peer = new Peer(defaultId, { debug: 2 })
-  // Listen for the event when a Peer connection is successfully opened
-  peer.on('open', (id: string) => {
-    console.log('Your ID:'+id+'hello world')
-    ElMessage.success('Status: Root Node Created')
-  })
-  peer.on('error', (err: any) => {
-    if (err.type === 'unavailable-id') {
-      // document.getElementById('connectRoot')!.style.visibility = 'visible'
-      peer = new Peer({ debug: 2 })
-      peer.on('open', (id: string) => {
-        console.log('Your ID:'+id)
-        ElMessage.warning('Status: Need to connect to the Root Node')
-        defaultConnect()
-      })
-    } else {
-      ElMessage.error('initial work ERROR(check in console)')
-    }
-  })
+// onMounted(() => {
+//   peer = new Peer(defaultId, { debug: 2 })
+//   // Listen for the event when a Peer connection is successfully opened
+//   peer.on('open', (id: string) => {
+//     console.log('Your ID:'+id+'hello world')
+//     ElMessage.success('Status: Root Node Created')
+//   })
+//   peer.on('error', (err: any) => {
+//     if (err.type === 'unavailable-id') {
+//       // document.getElementById('connectRoot')!.style.visibility = 'visible'
+//       peer = new Peer({ debug: 2 })
+//       peer.on('open', (id: string) => {
+//         console.log('Your ID:'+id)
+//         ElMessage.warning('Status: Need to connect to the Root Node')
+//         defaultConnect()
+//       })
+//     } else {
+//       ElMessage.error('initial work ERROR(check in console)')
+//     }
+//   })
 
-  if (peer.id === defaultId) {
-    peer.on('connection', (connPort: DataConnection) => {
-      const conn: DataConnection = connPort
+//   if (peer.id === defaultId) {
+//     peer.on('connection', (connPort: DataConnection) => {
+//       const conn: DataConnection = connPort
 
-      conn.on('open', () => {
-        connIds.push(conn.peer)
-        conns.push(conn)
-        console.log('Be connected to: ' + conn.peer)
-        conn.send(rooms)
-      })
+//       conn.on('open', () => {
+//         connIds.push(conn.peer)
+//         conns.push(conn)
+//         console.log('Be connected to: ' + conn.peer)
+//         conn.send(rooms)
+//       })
 
-      conn.on('close', () => {
-        for (let i = 0; i < conns.length; i++) {
-          if (conns[i]) {
-            if (conns[i].open) {
-              continue
-            } else {
-              const disconnectedHost = connIds.indexOf(conns[i].peer)
-              const disconnectedLiveHost = liveHostIds.indexOf(conns[i].peer)
-              if (disconnectedHost !== -1) {
-                console.log('Disconnected and deleted: ' + conns[i].peer) // DEBUG
-                conns.splice(disconnectedHost, 1)
-                connIds.splice(disconnectedHost, 1)
-              }
-              if (disconnectedLiveHost !== -1) {
-                liveHostIds.splice(disconnectedLiveHost, 1)
-                rooms.value!.splice(disconnectedLiveHost, 1)
-                rootSend(rooms.value!)
-              }
-            }
-          } else {
-            break
-          }
-        }
-      })
+//       conn.on('close', () => {
+//         for (let i = 0; i < conns.length; i++) {
+//           if (conns[i]) {
+//             if (conns[i].open) {
+//               continue
+//             } else {
+//               const disconnectedHost = connIds.indexOf(conns[i].peer)
+//               const disconnectedLiveHost = liveHostIds.indexOf(conns[i].peer)
+//               if (disconnectedHost !== -1) {
+//                 console.log('Disconnected and deleted: ' + conns[i].peer) // DEBUG
+//                 conns.splice(disconnectedHost, 1)
+//                 connIds.splice(disconnectedHost, 1)
+//               }
+//               if (disconnectedLiveHost !== -1) {
+//                 liveHostIds.splice(disconnectedLiveHost, 1)
+//                 rooms.value!.splice(disconnectedLiveHost, 1)
+//                 rootSend(rooms.value!)
+//               }
+//             }
+//           } else {
+//             break
+//           }
+//         }
+//       })
 
-      conn.on('data', (data: any) => {
-        switch (data[0]) {
-          case 0:
-            break
-          case 1:
-            if (liveHostIds.includes(data[7])) {
-              rooms.value![liveHostIds.indexOf(data[7])] = data
-            } else {
-              liveHostIds.push(data[7])
-              rooms.value!.push(data) // record child nodesMap
-            }
-            console.log('Live rooms update') // DEBUG
-            rootSend(rooms.value!)
-            break
-          default:
-            console.log('unknown data: ' + data)
-        }
-      })
-    })
-  }
-})
+//       conn.on('data', (data: any) => {
+//         switch (data[0]) {
+//           case 0:
+//             break
+//           case 1:
+//             if (liveHostIds.includes(data[7])) {
+//               rooms.value![liveHostIds.indexOf(data[7])] = data
+//             } else {
+//               liveHostIds.push(data[7])
+//               rooms.value!.push(data) // record child nodesMap
+//             }
+//             console.log('Live rooms update') // DEBUG
+//             rootSend(rooms.value!)
+//             break
+//           default:
+//             console.log('unknown data: ' + data)
+//         }
+//       })
+//     })
+//   }
+// })
 function defaultConnect() {
   if (peer!.id === defaultId) {
     ElMessage.error("Root node can't connect others")
@@ -217,7 +217,7 @@ function join(){
   flex-direction: row;
   justify-content: center;
   width: 100%;
-  height: 47.31rem;
+  height: 40.31rem;
   padding: 2.5rem;
   margin-top: 3rem;
   overflow: hidden;

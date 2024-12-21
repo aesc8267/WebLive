@@ -5,14 +5,10 @@
       :changeDialog="changeDialog"
       @wheel="handleWheel"
     ></LiveHead>
-    <RouterView @wheel="handleWheel($event, true)"></RouterView>
+    <RouterView @wheel="handleWheel($event, true)" class="router-view"></RouterView>
     <LiveFooter @wheel="handleWheel"></LiveFooter>
-    <LiveAbout @wheel="handleWheel"></LiveAbout>
-    <el-dialog
-      v-model="dialog"
-      :title="logInTitle"
-      width="400"
-    >
+    <!-- <LiveAbout @wheel="handleWheel"></LiveAbout> -->
+    <el-dialog v-model="dialog" :title="logInTitle" width="400">
       <el-form label-width="100px">
         <el-form-item label="用户名">
           <el-input v-model.trim="username"></el-input>
@@ -43,11 +39,7 @@
         </el-form-item>
       </el-form>
     </el-dialog>
-    <el-dialog
-      v-model="dialog1"
-      title="修改信息"
-      width="400"
-    >
+    <el-dialog v-model="dialog1" title="修改信息" width="400">
       <el-form label-width="100px">
         <el-form-item label="用户名">
           <el-input v-model.trim="username"></el-input>
@@ -77,7 +69,7 @@
 import LiveHead from "./components/LiveHead.vue";
 // import LiveRoom from './components/LiveRoom.vue';
 import LiveFooter from "./components/LiveFooter.vue";
-import LiveAbout from "./components/LiveAbout.vue";
+// import LiveAbout from "./components/LiveAbout.vue";
 import { RouterView } from "vue-router";
 import { onMounted, ref } from "vue";
 import { debounce } from "lodash";
@@ -87,7 +79,7 @@ const logInTitle = ref<string>("登录");
 const avatar = ref();
 // const currentTime = new Date();
 const dialog = ref<boolean>(false);
-  const dialog1 = ref<boolean>(false);
+const dialog1 = ref<boolean>(false);
 const username = ref<string>("");
 const password = ref<string>("");
 const isLogIn = localStorage.getItem("isLogin") === "true";
@@ -189,7 +181,7 @@ onMounted(() => {
   }
 });
 function changeDialog() {
-  if(isLogIn)dialog1.value = true;
+  if (isLogIn) dialog1.value = true;
   else dialog1.value = true;
 }
 const is_close = ref<boolean>(false);

@@ -1152,7 +1152,7 @@ const roomAbout = ref("周二读书会");
     border: solid 0.063rem #d3c2ca;
     height: 15%;
     &-avator {
-      height: 120%;
+      height: 110%;
       margin-right: 1rem;
       padding: 1rem 0;
       img {

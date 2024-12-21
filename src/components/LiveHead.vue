@@ -6,34 +6,12 @@
       :to="{
         path: '/host',
         query: {},
-      }"
-      class="live-nav-logo"
-    >
-      <svg
-        width="80"
-        height="80"
-        viewBox="0 0 80 80"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <mask
-          id="mask0_136_426"
-          style="mask-type: alpha"
-          maskUnits="userSpaceOnUse"
-          x="10"
-          y="12"
-          width="60"
-          height="56"
-        >
-          <rect x="10" y="12.5" width="60" height="55" fill="#D9D9D9" />
-        </mask>
-        <g mask="url(#mask0_136_426)">
-          <path
-            d="M24.5813 58.4188L18.6213 64.3788C17.8721 65.128 17.0115 65.2992 16.0394 64.8925C15.0673 64.4863 14.5813 63.7605 14.5813 62.715V22.3163C14.5813 21.0221 15.0475 19.9077 15.98 18.9732C16.9125 18.0386 18.0246 17.5713 19.3163 17.5713H60.6838C61.978 17.5713 63.0923 18.0386 64.0269 18.9732C64.9615 19.9077 65.4288 21.0221 65.4288 22.3163V53.6838C65.4288 54.9755 64.9615 56.0875 64.0269 57.02C63.0923 57.9525 61.978 58.4188 60.6838 58.4188H24.5813ZM40.0044 50.2282C40.6832 50.2282 41.2509 49.9967 41.7076 49.5338C42.1642 49.0709 42.3926 48.5017 42.3926 47.8263C42.3926 47.1509 42.1646 46.5823 41.7088 46.1207C41.2525 45.659 40.6848 45.4282 40.0057 45.4282C39.3265 45.4282 38.7569 45.6577 38.2969 46.1169C37.8373 46.5765 37.6075 47.1459 37.6075 47.825C37.6075 48.5005 37.8371 49.0698 38.2963 49.5332C38.7559 49.9965 39.3253 50.2282 40.0044 50.2282ZM40.0075 41.0582C40.6338 41.0582 41.153 40.8502 41.565 40.4344C41.9771 40.019 42.1832 39.4986 42.1832 38.8732V27.6832C42.1832 27.0644 41.9746 26.5459 41.5575 26.1275C41.1405 25.7092 40.6188 25.5 39.9925 25.5C39.3663 25.5 38.8471 25.7077 38.435 26.1232C38.023 26.539 37.8169 27.0596 37.8169 27.685V38.875C37.8169 39.4934 38.0255 40.0119 38.4425 40.4307C38.8596 40.849 39.3813 41.0582 40.0075 41.0582Z"
-            fill="#8E4957"
-          />
-        </g>
-      </svg>
+      }">
+      <img
+        class="live-nav-logo"
+        src="/src/assets/images/BBSkip.png"
+        alt="开启直播！"
+      />
     </RouterLink>
     <el-input
       class="live-nav-input"
@@ -279,7 +257,7 @@
           <el-input type="password" v-model="newPassword"></el-input>
         </el-form-item>
       </el-form>
-      </el-dialog>
+    </el-dialog>
   </div>
 </template>
 
@@ -289,18 +267,16 @@ import { RouterLink } from "vue-router";
 const searchInfo = ref("");
 import { onMounted, ref, computed, toRefs } from "vue";
 import { Peer, DataConnection } from "peerjs";
-let newPassword=ref<string>("");
-let oldPassword=ref<string>("");
+let newPassword = ref<string>("");
+let oldPassword = ref<string>("");
 let avatar = ref<string>();
 let isShow = ref<boolean>(false);
-let showChangeInfo=ref<boolean>(false);
+let showChangeInfo = ref<boolean>(false);
 const props = defineProps<{
   isClose: boolean;
   changeDialog: Function;
 }>();
 let { isClose, changeDialog } = toRefs(props);
-
-
 
 const logout = () => {
   localStorage.clear();
@@ -328,14 +304,11 @@ const search = () => {
 };
 </script>
 <style lang="scss" scoped>
-.live-nav > * {
-  height: 120%;
-}
 .live-nav {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  padding: 0.8rem;
+  padding: 0.6rem;
   background-color: #f8eaf0;
   overflow: hidden;
   border: solid 0.063rem #d3c2ca;
@@ -353,7 +326,7 @@ const search = () => {
     // border: solid 0.063rem #d3c2ca;
   }
   &-input {
-    margin-left: 4rem;
+    // margin-left: 4rem;
     padding: 0 0;
     background-color: #ffffff;
     overflow: hidden;
@@ -407,7 +380,7 @@ const search = () => {
 .live-nav-avator {
   position: relative;
   right: 1.5rem;
-  margin-right: 1rem;
+  bottom: 0.1rem;
   height: 3rem;
   width: 3rem;
   border-radius: 50%;
@@ -421,5 +394,10 @@ const search = () => {
 }
 .not-show {
   display: none;
+}
+.live-nav-logo {
+  height: 110%;
+  position: relative;
+  margin-left: 3rem;
 }
 </style>

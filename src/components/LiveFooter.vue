@@ -1,6 +1,14 @@
 <template>
   <div class="live-footer">
-    <p>这是直播脚部，暂时没想好做啥</p>
+    <!-- <div id="rooms" ref="roomsDiv" v-if="rooms.length">
+    <div v-for="(room, index) in filteredRooms" :key="index"
+      :style="{ backgroundImage: 'url($room[6])', backgroundSize: 'contain' }" @click="displayRoomInfo(index)"
+      ref="roomFor">
+      <span>{{ room[4] }}</span>
+      <span class="members-count" style="position: absolute; bottom: 0"></span>
+      Members: {{ room[2].length }}
+    </div>
+  </div> -->
   </div>
 </template>
 
