@@ -1,9 +1,14 @@
 <script lang="ts" setup>
 /* eslint-disable */
-import { computed, onBeforeMount, onBeforeUnmount, onMounted, onUnmounted, ref } from "vue";
-import { Peer, DataConnection, MediaConnection } from "peerjs";
-// @ts-ignore
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+/*@ts-expect-error*/
 import SrsRtcPlayerAsync from "@/utils/srs.sdk.js";
+import {
+  onBeforeUnmount,
+  onMounted,
+  ref,
+} from "vue";
+import { Peer, DataConnection, MediaConnection } from "peerjs";
 let liveSettingDrawer = ref(false);
 let roomInfoDrawer = ref(false);
 let streamSourceDrawer = ref(false);
@@ -11,16 +16,11 @@ let streamSourceDrawer = ref(false);
 const peer = new Peer({ debug: 2 });
 let conn: DataConnection;
 let mediaOpen: MediaConnection | null = null;
-let openInfoTimes = 0;
 let openLiveTimes = 0;
 let parent: DataConnection | null = null;
 let ifAutoScroll = ref<boolean>(true);
-let localStream: MediaStream | null = null;
+let localStream: MediaStream | null
 let remoteStream: MediaStream | null = null;
-let ifHitAim = null;
-let lastAimId: string | null;
-let layers = [0];
-let lastLayerNumber: null = null;
 let audiences = new Array();
 let audienceIds = new Array();
 let conns = new Array();
@@ -44,7 +44,6 @@ let guest: DataConnection | null = null;
 let guests = new Array();
 let ifConnectedAim: boolean = false;
 let bridge: DataConnection | null = null;
-let middleX = 0;
 let fullWebVideoTimes = 0;
 let myIcon = "";
 let temporaryChosedNodes = new Array();
@@ -62,24 +61,19 @@ const sendMessageBox = ref<HTMLInputElement>();
 const sendButton = ref<HTMLButtonElement>();
 const liveSetting = ref<HTMLDivElement>();
 const openRoomInfoDiv = ref<HTMLElement>();
-const connectButton = ref<HTMLElement>();
 const peerId = ref<HTMLInputElement>();
 const sumOfRoom = ref<number>(1);
 const onlyPC = ref<HTMLDivElement>();
-const streamUrlSRS = ref<HTMLInputElement>();
+const streamUrlSRS = ref<string>("");
 const lendAimId = ref<HTMLInputElement>();
-const block0 = ref<HTMLDivElement>();
-const block1 = ref<HTMLDivElement>();
 const roomTitle = ref<string>();
 const roomSummary = ref<string>();
 const roomCover = ref<string>();
 const streamSourceMenuClose = ref<HTMLButtonElement>();
 const ifNotDisplayLocalStream = ref<HTMLInputElement>();
-const ifUseCamera = ref<HTMLInputElement>();
-const ifUseMicrophone = ref<HTMLInputElement>();
+const ifUseCamera = ref<boolean>(false);
+const ifUseMicrophone = ref<boolean>(false);
 const connectRoot = ref<HTMLDivElement>();
-const container = ref<HTMLDivElement>();
-const fullScreen = ref<HTMLButtonElement>();
 const msgImgInput = ref<HTMLInputElement>();
 const ifAutoClean = ref<HTMLInputElement>();
 let coverURL = "";
@@ -94,22 +88,22 @@ onMounted(() => {
   }
   // 这里有问题，这段代码写的太垃圾了，通过livetitle 的值是否位null 判断是否是refash还是url 新建，ex！
   peer.on("open", (id) => {
-      nodesMap = [
-        1,
-        1,
-        [id],
-        0,
-        LiveTitle.value,
-        LiveSummary.value,
-        LiveCoverURL.value,
-        id,
-        getMyName(),
-        childNodes,
-        urlInfo[0],
-      ];
-      //childNodes=[0.dataType, 1.sourceMark, 2.NumberOfchildNodes, 3.unused for you ]
-      childNodes = [1, 1, 0, [], id, getMyName(), []];
-      //nodesMap=[0.dataType, 1.sourceMark, 2.idsOfMembersInRoom, 3.roomType]
+    nodesMap = [
+      1,
+      1,
+      [id],
+      0,
+      LiveTitle.value,
+      LiveSummary.value,
+      LiveCoverURL.value,
+      id,
+      getMyName(),
+      childNodes,
+      urlInfo[0],
+    ];
+    //childNodes=[0.dataType, 1.sourceMark, 2.NumberOfchildNodes, 3.unused for you ]
+    childNodes = [1, 1, 0, [], id, getMyName(), []];
+    //nodesMap=[0.dataType, 1.sourceMark, 2.idsOfMembersInRoom, 3.roomType]
     console.log(id);
     ElMessage.success("Your ID:" + id);
     ElMessage.warning("Status: Connecting to Root Node...");
@@ -212,7 +206,7 @@ onMounted(() => {
     });
 
     conn.on("close", () => {
-      console.log("Connection closed")
+      console.log("Connection closed");
       for (let i = 0; i < conns.length; i++) {
         if (conns[i]) {
           if (conns[i].open) {
@@ -270,11 +264,10 @@ onMounted(() => {
     onlyPC.value!.remove();
   }
 });
-onBeforeUnmount(()=>{
-
-  console.log('host unmounted')
-  peer.destroy();// 清理所有peer 产生的资源
-})
+onBeforeUnmount(() => {
+  console.log("host unmounted");
+  peer.destroy(); // 清理所有peer 产生的资源
+});
 // *This function is expected to retrieve the local stream, which could be a stream from the camera or microphone.
 function streamSourceMenu() {
   streamSourceDrawer.value = false;
@@ -325,7 +318,7 @@ function openRoomInfo() {
 function recorder(data: any) {
   let sameId = childNodes.indexOf(data[4]); // locate old data
   console.log("Info of nodes updated:", data);
-  console.log(sameId)
+  console.log(sameId);
   // let idTemp = Object.assign({}, audienceIds);     // make audiencesPeers value stable
   if (sameId === -1) {
     childNodes.push(data[4]);
@@ -362,136 +355,18 @@ function recorder(data: any) {
   sumOfRoom.value = nodesMap[2].length;
 }
 
-// 添加
-function echoNodesMap(arr: any, layerNumber: any, aimId: any, fnOfEcho: any) {
-  if (arr == nodesMap[9]) {
-    // refresh Map for "refresh" & hostNode button
-    layers = [0];
-    if (aimId === undefined) {
-      // hostNode button provide the channel connecting to host
-      lastAimId = null;
-    }
-    lastLayerNumber = null;
-    block0.value!.innerHTML = "";
-    block1.value!.innerHTML = "";
-  }
-  if (lastAimId === aimId) {
-    // if second click on same button
-    switch (fnOfEcho) {
-      case 0: // button for getting id
-        if (aimId) {
-          alert(aimId);
-        }
-        break;
-      case 1: // button for joining a node
-        if (aimId == peer!.id) {
-          alert(aimId);
-          break;
-        }
-        document.location.href =
-          "./P2PLiveAudience.html?id=" + aimId + "&name=" + getMyName();
-        break;
-      case 2: // button for joining a node
-        if (aimId == peer!.id) {
-          alert(aimId);
-          break;
-        }
-        document.location.href =
-          "./P2PGameFiveOnLinePlayer.html?id=" + aimId + "&name=" + getMyName();
-        break;
-    }
-  } else {
-    document.getElementById("block" + (layerNumber % 2))!.innerHTML = "";
-    if (lastLayerNumber === layerNumber) {
-      layers.splice(lastLayerNumber! + 1); // remove all of old layers
-    }
-    if (arr) {
-      for (let i = 7; i < arr.length; i = i + 3) {
-        if (arr[i + 2] instanceof Array) {
-          // create buttons linking to child nodes of object which was delivered by clicked button
-          document.getElementById("block" + (layerNumber % 2))!.innerHTML =
-            document.getElementById("block" + (layerNumber % 2))!.innerHTML +
-            '<button class="childNodes" onclick="echoNodesMap(layers[' +
-            (layerNumber + 1) +
-            "][" +
-            (i + 2) +
-            "], " +
-            (layerNumber + 1) +
-            ", layers[" +
-            (layerNumber + 1) +
-            "][" +
-            i +
-            "], " +
-            fnOfEcho +
-            ' )">' +
-            arr[i + 1] +
-            "</button><br />";
-        }
-      }
-    }
-    layers.push(arr);
-    lastLayerNumber = layerNumber;
-    lastAimId = aimId; // original id of this layer
-  }
-}
-
 function refreshMap(fnOfEcho: any) {
   roomTitle.value = nodesMap[4];
   roomSummary.value = nodesMap[5];
   roomCover.value = nodesMap[6];
-  echoNodesMap(nodesMap[9], 0, undefined, fnOfEcho); // refresh the menu
 }
-
-function useDisplayMedia() {
-  navigator.mediaDevices
-    .getDisplayMedia({ video: true, audio: true })
-    .then((stream) => {
-      // After successfully obtaining the local stream, display it on the page.
-      if (!ifNotDisplayLocalStream.value!.checked) {
-        console.log(stream);
-        displayStream(stream); // for debug
-      } else {
-        WebVideo.value!.srcObject = null;
-      }
-      localStream = stream;
-      console.log("Local stream shared");
-    })
-    .catch((error) => {
-      console.error("Error getting local stream:", error);
+function disconnectStream() {
+  if (localStream) {
+    localStream?.getTracks().forEach(function (track) {
+      track.stop();
     });
-}
-
-function askNavigatorMediaDevices() {
-  let constraints = {
-    audio: ifUseCamera.value!.checked,
-    video: ifUseMicrophone.value!.checked,
-  };
-  navigator.mediaDevices
-    .getUserMedia(constraints)
-    .then(function (stream) {
-      // After successfully obtaining the local stream, display it on the page.
-      if (!ifNotDisplayLocalStream.value!.checked) {
-        displayStream(stream); // for debug
-      } else {
-        WebVideo.value!.srcObject = null;
-      }
-      localStream = stream;
-      console.log("Local stream shared");
-    })
-    .catch(function (err) {
-      console.error("Error getting local stream:", err);
-    });
-}
-
-function shareSRSMediaStream(url: string) {
-  url = "webrtc://" + url;
-  const rtcPlayer = new SrsRtcPlayerAsync();
-  rtcPlayer.play(url);
-  localStream = rtcPlayer.stream;
-  if (!ifNotDisplayLocalStream.value!.checked) {
-    displayStream(rtcPlayer.stream); // for debug
-  } else {
     WebVideo.value!.srcObject = null;
+    console.log("stream disconnected");
   }
 }
 function tryConnect(
@@ -788,7 +663,7 @@ function appearMsg(msg: any) {
   }
 }
 function getRoomIds() {
-  console.log(nodesMap)
+  console.log(nodesMap);
   roomIds = new Array();
   recursiveSearch(nodesMap[9], 999); // DEBUG 999 -> + infinite
   roomIds.push(nodesMap[7]); // host id
@@ -801,9 +676,9 @@ function displayStream(stream: any) {
   WebVideo.value!.srcObject = stream;
 }
 function recursiveSearch(arr: Array<any>, t: number) {
-  console.log(arr)
+  console.log(arr);
   for (let i = 7; i < arr.length; i = i + 3) {
-    if (arr[i] && arr[i + 2] ) {
+    if (arr[i] && arr[i + 2]) {
       if (arr[i + 2][2] < t) {
         roomIds.push(arr[i]);
       }
@@ -832,7 +707,44 @@ function shallowSearch(arr: Array<any>, t: number) {
     }
   } // else { console.log("give up connecting to "+ arr[i]); }
 }
+function useDisplayMedia() {
+    navigator.mediaDevices
+      .getDisplayMedia({ video: true, audio: true })
+      .then((stream) => {
+        // After successfully obtaining the local stream, display it on the page.
+        localStream = stream;
+        displayStream(localStream)
+        console.log("Local stream shared");
+      })
+      .catch((error) => {
+        console.error("Error getting local stream:", error);
+      });
+  }
 
+  function askNavigatorMediaDevices(ifUseCamera:boolean,ifUseMicrophone:boolean) {
+    const constraints = {
+      audio: ifUseCamera,
+      video:ifUseMicrophone
+    };
+    navigator.mediaDevices
+      .getUserMedia(constraints)
+      .then(function (stream) {
+        localStream = stream;
+        displayStream(localStream)
+        console.log("Local stream shared");
+      })
+      .catch(function (err) {
+        console.error("Error getting local stream:", err);
+      });
+  }
+
+  function shareSRSMediaStream(url: string) {
+    url = "webrtc://" + url;
+    const rtcPlayer = new SrsRtcPlayerAsync();
+    rtcPlayer.play(url);
+    localStream = rtcPlayer.stream;
+    displayStream(localStream)
+  }
 const roomName = ref("瓶子君152");
 const roomAbout = ref("周二读书会");
 </script>
@@ -905,18 +817,10 @@ const roomAbout = ref("周二读书会");
           ></textarea>
           <div id="nodeInfo">
             <div id="stable">
-              <el-button
-                id="hostBlock"
-                @click="echoNodesMap(nodesMap[9], 0, nodesMap[7], 0)"
-              >
-                me
-              </el-button>
               <el-button id="refreshMap" @click="refreshMap(0)"
                 >Refresh</el-button
               >
             </div>
-            <div id="block0" ref="block0"></div>
-            <div id="block1" ref="block1"></div>
           </div>
         </div>
         <el-button id="closeInfo" class="actionel-button" @click="openRoomInfo">
@@ -930,7 +834,10 @@ const roomAbout = ref("周二读书会");
         <div class="box" id="onlyPC" ref="onlyPC" style="margin-top: 10px">
           <div style="font-weight: bold">
             Share PC Desktop:<br />
-            <el-button id="browserDisplayMedia" @click="useDisplayMedia()">
+            <el-button
+              id="browserDisplayMedia"
+              @click="useDisplayMedia()"
+            >
               Use Display Stream
             </el-button>
           </div>
@@ -940,12 +847,17 @@ const roomAbout = ref("周二读书会");
             Share Local Devices:
             <el-button
               id="browserNavigatorMediaDevices"
-              @click="askNavigatorMediaDevices()"
+              @click="
+                askNavigatorMediaDevices(
+                  ifUseCamera,
+                  ifUseMicrophone
+                )
+              "
             >
               Upload Local Device</el-button
             ><br />
-            <input type="checkbox" ref="ifUseCamera" />Camera
-            <input type="checkbox" ref="ifUseMicrophone" />Microphone
+            <input type="checkbox" v-model="ifUseCamera" />Camera
+            <input type="checkbox" v-model="ifUseMicrophone" />Microphone
           </div>
         </div>
         <div class="box" style="margin-top: 10px">
@@ -953,13 +865,13 @@ const roomAbout = ref("周二读书会");
             Input SRS Media Stream url like "url/key"(rtmp -> srs -> webrtc)<br />
             <input
               id="streamUrlSRS"
-              ref="streamUrlSRS"
+              v-model="streamUrlSRS"
               type="text"
               placeholder="input the url of srs media Stream here..."
             />
             <el-button
               id="uploadStreamSRS"
-              @click="shareSRSMediaStream(streamUrlSRS!.value)"
+              @click="shareSRSMediaStream(streamUrlSRS)"
             >
               share SRS Media Stream
             </el-button>
@@ -999,6 +911,9 @@ const roomAbout = ref("周二读书会");
         >
           Close
         </el-button>
+        <el-button class="disconnect-stream" @click="disconnectStream"
+          >disconnect</el-button
+        >
       </div>
     </el-drawer>
     <!-- ID interaction -->

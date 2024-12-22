@@ -9,11 +9,18 @@
       Members: {{ room[2].length }}
     </div>
   </div> -->
+
+  <div class="test">
+
+  </div>
   </div>
 </template>
 
 <script setup lang="ts">
-
+import { apiRoomsHotList } from '@/api/room-controller';
+apiRoomsHotList().then(res => {
+  console.log(res);
+})
 </script>
 
 <style lang="scss" scoped>

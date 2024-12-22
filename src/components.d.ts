@@ -34,9 +34,12 @@ declare module 'vue' {
     'LiveHead copy': typeof import('./components/LiveHead copy.vue')['default']
     LiveHost: typeof import('./views/PeerLiveHost.vue')['default']
     LiveIndex: typeof import('./views/PeerLiveIndex.vue')['default']
+    LiveInfo: typeof import('./components/LiveInfo.vue')['default']
     LiveRoom: typeof import('./components/LiveRoom.vue')['default']
+    LiveSetting: typeof import('./components/LiveSetting.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    StreamSource: typeof import('./components/StreamSource.vue')['default']
     TempCodeRunnerFile: typeof import('./components/tempCodeRunnerFile.vue')['default']
     VideoPlayer: typeof import('./components/basic/VideoPlayer.vue')['default']
   }
