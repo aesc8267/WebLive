@@ -2,9 +2,19 @@
   <div class="live-room">
     <VideoPlayer>
       <template #join>
-        <el-input class="join-input" v-model="directConnectId" placeholder="请输入房间号" @keyup.enter="join">
+        <el-input
+          class="join-input"
+          v-model="directConnectId"
+          placeholder="请输入房间号"
+          @keyup.enter="join"
+        >
           <template #suffix>
-            <img src="/src/assets/images/AtriYES.png" alt="atri" class="atri" @click="join">
+            <img
+              src="/src/assets/images/AtriYES.png"
+              alt="atri"
+              class="atri"
+              @click="join"
+            />
           </template>
         </el-input>
       </template>
@@ -18,36 +28,36 @@
 import { useRouter } from "vue-router";
 import { RouterLink } from "vue-router";
 const searchInfo = ref("");
-import { onMounted, ref } from 'vue'
-import { Peer, DataConnection } from 'peerjs'
-const router = useRouter()
-let directConnectId = ref<string>("")
-let lastTemporaryChosedNodes = []
-let temporaryChosedNodes = []
-let openInfoTimes: number = 0
-let openLiveTimes: number = 0
-let myid: string | null = null
-let ifIndex: boolean = true
-let ifConnectedAim: boolean = false
-let lastAimId: string | null = null
-let nodesMap: any[] = []
-let rooms = ref<any[]>([])
-let liveHostIds: string[] = []
-let conns: DataConnection[] = []
-let connIds: string[] = []
-let layers: number[] = [0]
-let roomPosition: number | null = null
-let lastLayerNumber: number | null = null
-let MyName: string | null = null
-let rootId = ''
-let switchDeg: number = 180
-let connectHistroy: string[] = []
-let defaultId: string = 'P2P-Live-Web-default-Id'
-let peer: Peer = new Peer()
-let guests = []
-let guest: any = null
-let root: any = null
-let peerId=ref<string>()
+import { onMounted, ref } from "vue";
+import { Peer, DataConnection } from "peerjs";
+const router = useRouter();
+let directConnectId = ref<string>("");
+let lastTemporaryChosedNodes = [];
+let temporaryChosedNodes = [];
+let openInfoTimes: number = 0;
+let openLiveTimes: number = 0;
+let myid: string | null = null;
+let ifIndex: boolean = true;
+let ifConnectedAim: boolean = false;
+let lastAimId: string | null = null;
+let nodesMap: any[] = [];
+let rooms = ref<any[]>([]);
+let liveHostIds: string[] = [];
+let conns: DataConnection[] = [];
+let connIds: string[] = [];
+let layers: number[] = [0];
+let roomPosition: number | null = null;
+let lastLayerNumber: number | null = null;
+let MyName: string | null = null;
+let rootId = "";
+let switchDeg: number = 180;
+let connectHistroy: string[] = [];
+let defaultId: string = "P2P-Live-Web-default-Id";
+let peer: Peer = new Peer();
+let guests = [];
+let guest: any = null;
+let root: any = null;
+let peerId = ref<string>();
 
 //建立peerjs 连接
 // onMounted(() => {
@@ -130,38 +140,38 @@ let peerId=ref<string>()
 // })
 function defaultConnect() {
   if (peer!.id === defaultId) {
-    ElMessage.error("Root node can't connect others")
-    return
+    ElMessage.error("Root node can't connect others");
+    return;
   }
   if (root) {
-    root.close()
+    root.close();
   }
-  tryConnect(defaultId, false)
+  tryConnect(defaultId, false);
 }
 function tryConnect(id: string, ifJump: boolean) {
   if (root) {
-    root.close()
+    root.close();
   }
 
-  root = peer!.connect(id)
+  root = peer!.connect(id);
 
-  root.on('open', () => {
-    peerId.value! = id
-    ElMessage.success('Status: Connected to Root Node Successfully!')
-  })
+  root.on("open", () => {
+    peerId.value! = id;
+    ElMessage.success("Status: Connected to Root Node Successfully!");
+  });
 
   // Receive the reply of text: Host --> Guset
-  root.on('data', (data: any) => {
+  root.on("data", (data: any) => {
     // Info of rooms from root received
-    console.log(data)
-    rooms.value = data
+    console.log(data);
+    rooms.value = data;
     // appearRooms()
-    console.log('Room list received')
-  })
+    console.log("Room list received");
+  });
 
-  root.on('close', () => {
+  root.on("close", () => {
     // root = null;
-    ElMessage.warning('Status: Root Connection Closed!')
+    ElMessage.warning("Status: Root Connection Closed!");
 
     // if(document.getElementById("ifAutoReconnect").checked){
     //     document.getElementById("status").innerHTML="Status: Reconnecting to last Root Node...";
@@ -169,50 +179,51 @@ function tryConnect(id: string, ifJump: boolean) {
     //     tryConnect(4, connectHistroy.slice(-1)[0], false);
     //     // document.getElementById("status").innerHTML="Status: Root Reconnection Failed!";
     // }
-  })
+  });
 }
 function rootSend(rooms: any[]) {
-  console.log('deliver rooms update') // DEBUG
+  console.log("deliver rooms update"); // DEBUG
   for (let i = 0; i < conns.length; i++) {
     if (liveHostIds.includes(connIds[i])) {
-      continue
+      continue;
     }
     if (conns[i].open) {
-      conns[i].send(rooms)
+      conns[i].send(rooms);
     }
   }
 }
 function getMyName() {
   if (MyName) {
     if (MyName) {
-      return MyName
+      return MyName;
     } else {
-      return peer!.id
+      return peer!.id;
     }
   }
 }
 
-function join(){
+function join() {
   if (guest) {
     if (guest.open) {
-      guest.close()
+      guest.close();
     }
   }
-  guest = peer!.connect(directConnectId.value)
-  guest.on('open', () => {
-    console.log('successfully connected: ' + guest.peer) // DEBUG
-  })
-  guest.on('data',(data:any)=>{
-    nodesMap=data
-    router.push({path:'/audience',query:{id:guest.peer,name:getMyName()}})
-  })
-
+  guest = peer!.connect(directConnectId.value);
+  guest.on("open", () => {
+    console.log("successfully connected: " + guest.peer); // DEBUG
+  });
+  guest.on("data", (data: any) => {
+    nodesMap = data;
+    router.push({
+      path: "/audience",
+      query: { id: guest.peer, name: getMyName() },
+    });
+  });
 }
-
 </script>
 
 <style lang="scss" scoped>
-.live-room{
+.live-room {
   display: flex;
   flex-direction: row;
   justify-content: center;
@@ -221,26 +232,28 @@ function join(){
   padding: 2.5rem;
   margin-top: 3rem;
   overflow: hidden;
-
 }
 
-.join-input{
+.join-input {
   display: flex;
   flex-direction: row;
   justify-content: center;
   height: 5.4%;
   width: 35%;
-  :deep(.el-input__wrapper){
+  :deep(.el-input__wrapper) {
     width: 100%;
     display: flex;
     justify-content: start;
     align-items: flex-end;
-
   }
-.atri{
-  padding-left: 0.4rem;
-  height: 120%;
-  cursor: pointer;
-}
+  .atri {
+    padding-left: 0.4rem;
+    height: 120%;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+    &:hover {
+      transform: scale(1.3);
+    }
+  }
 }
 </style>
