@@ -18,6 +18,9 @@
 
 <script setup lang="ts">
 import { apiRoomsHotList } from '@/api/room-controller';
+// const params={ 
+
+// }
 apiRoomsHotList().then(res => {
   console.log(res);
 })

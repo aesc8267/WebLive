@@ -72,26 +72,36 @@
         ></div>
         <div class="sendInput">
           <!-- Send box -->
-          <input
+          <el-input
             type="text"
-            id="sendMessageBox"
-            ref="sendMessageBox"
+            v-model="sendMessageBox"
             @keypress="enter"
             placeholder="Input message here..."
-            autofocus="true"
-          />
-          <el-button id="uploadImgel-button">Img</el-button>
+          >
+            <template #prepend>
+              <el-dropdown
+                placement="top-end"
+                :teleported="false"
+                trigger="click"
+              >
+                <el-icon>
+                  <IconFace style="transform: scale(1.7)" />
+                </el-icon>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <EmojiPicker
+                      :native="true"
+                      class="emoji-picker"
+                      @select="onVue3EmojiPicker"
+                    />
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
+            </template>
+          </el-input>
           <el-button id="sendel-button" ref="sendel-button" @click="sendMsg()">
             Send</el-button
-          ><br />
-          <input
-            id="msgImgInput"
-            ref="msgImgInput"
-            type="file"
-            onchange="sendImg()"
-            style="display: none"
-          />
-          <el-button @click="cleanMsg()">CleanMsgs</el-button><br />
+          >
         </div>
       </div>
     </div>
@@ -105,6 +115,10 @@ import { toRefs } from "vue";
 import { useRoute, type LocationQueryValue } from "vue-router";
 // @ts-ignore
 import SrsRtcPlayerAsync from "@/utils/srs.sdk.js";
+import { roomHistoryInsert } from "@/api/history-controller";
+import EmojiPicker, { type EmojiExt } from "vue3-emoji-picker";
+import "vue3-emoji-picker/css";
+
 const peer = new Peer({ debug: 2 });
 const route = useRoute();
 const roomName = ref("瓶子君152");
@@ -113,7 +127,7 @@ let conn: DataConnection;
 let mediaOpen: MediaConnection | null = null;
 let openInfoTimes = 0;
 let openLiveTimes = 0;
-const avatar = ref("/public/avatar/" + localStorage.getItem("avatar"));
+const avatar = ref(localStorage.getItem("avatar")!);
 let parent: DataConnection;
 let ifAutoScroll = ref<boolean>(true);
 let localStream: MediaStream | null = null;
@@ -160,7 +174,7 @@ let MyName = ref<string>("hello world");
 // const status = ref<HTMLDivElement>()
 const streamSource = ref<HTMLDivElement>();
 const chatBox = ref<HTMLElement>();
-const sendMessageBox = ref<HTMLInputElement>();
+const sendMessageBox = ref<string>("");
 const sendButton = ref<HTMLButtonElement>();
 const liveSetting = ref<HTMLDivElement>();
 const openRoomInfoDiv = ref<HTMLElement>();
@@ -189,6 +203,11 @@ const ifAutoReconnect = ref<HTMLInputElement>();
 
 let coverURL = "";
 let hereNode = new Array();
+
+const onVue3EmojiPicker = (emoji: EmojiExt) => {
+  console.log(emoji.i);
+  sendMessageBox.value += emoji.i;
+};
 onMounted(() => {
   // Listen for the event when a Peer connection is successfully opened
   // *Explanation: The provided code snippet is using the Peer.js library to establish a Peer connection. The peer.on('open', ...) code block is listening for the 'open' event, which is triggered when the Peer connection is successfully opened.
@@ -199,6 +218,7 @@ onMounted(() => {
     hereNode = [1, 0, 0, [], id, getMyName(), []];
     console.log("Your ID:" + id);
     ElMessage.warning("Status: Connecting to Live Room...");
+    roomHistoryInsert();
     tryConnect(0, urlId!, false, false); // try to connect to the room
   });
   // When a new connection request is received, this code creates a data channel and sends the local or remote stream (if available) and text messages.
@@ -206,7 +226,7 @@ onMounted(() => {
     connIds.push(connPort.peer);
     conns.push(connPort);
     conn = connPort;
-
+    // 插入历史记录
     conn.on("open", () => {
       // for guest in index
       let sendNodesMap = nodesMap;
@@ -771,7 +791,7 @@ function sendMsg() {
     0,
     peer.id,
     MyName.value,
-    sendMessageBox.value!.value,
+    sendMessageBox.value,
     msgImgBase64,
     myIcon,
   ]; //*This line of code creates an array called "msg" and assigns it two values. The first value is the value of the element with the ID "name", and the second value is the value of the element with the ID "sendMessageBox". These values are used to construct the message that will be sent.
@@ -780,7 +800,7 @@ function sendMsg() {
     if (liveSend(msg) > 0) {
       // *This condition checks if the "liveSend" function returns a value greater than 0 when called with the "msg" array and 0 as arguments. If it does, it means the message was sent successfully.
       appearMsg(msg); // This function is responsible for displaying the own sent message
-      sendMessageBox.value!.value = "";
+      sendMessageBox.value = "";
       // console.log("Sent successfully: " + msg);    // DEBUG
       msgImgBase64 = null;
       msgImgInput.value!.files = null;
@@ -788,10 +808,7 @@ function sendMsg() {
       console.log("Connection is closed");
     }
   } else {
-    sendMessageBox.value!.setAttribute(
-      "placeholder",
-      "Void content!!!!!!!!!!!!!!"
-    ); //*This line of code sets the placeholder attribute of the element with the ID "sendMessageBox" to display a message indicating that the content should not be empty.
+    //*This line of code sets the placeholder attribute of the element with the ID "sendMessageBox" to display a message indicating that the content should not be empty.
   }
 }
 function getMyName() {
@@ -1015,6 +1032,7 @@ function autoJoin(t: number) {
       padding: 1rem 0;
       img {
         height: 100%;
+        aspect-ratio: 1;
         border-radius: 50%;
         object-fit: cover;
       }
@@ -1034,6 +1052,7 @@ function autoJoin(t: number) {
   #chatContainer {
     display: flex;
     flex-direction: column;
+    align-items: center;
     border-radius: 2.5rem;
     width: 38.88rem;
     border: solid 0.063rem #d3c2ca;
@@ -1045,11 +1064,12 @@ function autoJoin(t: number) {
       height: 80%;
     }
     .sendInput {
-      width: 100%;
+      width: 50%;
       display: flex;
       justify-content: center;
     }
     .chat-room-head {
+      width: 100%;
       display: flex;
       flex-direction: column;
       align-items: start;
@@ -1057,6 +1077,11 @@ function autoJoin(t: number) {
       border: solid 0.063rem #d3c2ca;
       height: 5rem;
     }
+  }
+}
+.emoji-picker {
+  * {
+    flex-shrink: 1;
   }
 }
 </style>

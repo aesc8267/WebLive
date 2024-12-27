@@ -6,6 +6,7 @@ export const useUserStore = defineStore("user", () => {
   const password = ref<string|null>(localStorage.getItem("password"));
   const isLogIn =ref<boolean>(false);// 这个表示后端系统是否已经登录
   const avatar = ref(localStorage.getItem("avatar"));
+  const rid=ref(localStorage.getItem("rid"))
   // 这个登录用于后端系统登录
  const  signIn = async() => {
      // console.log(username.value, password.value);
@@ -36,5 +37,5 @@ export const useUserStore = defineStore("user", () => {
     localStorage.clear();
     window.location.reload();
   };
-  return { username, password, isLogIn, avatar, signIn,signout };
+  return { username, password, isLogIn, avatar, signIn,signout ,rid};
 });

@@ -10,8 +10,8 @@
     ></RouterView>
     <LiveFooter @wheel="handleWheel"></LiveFooter>
     <LiveDialog></LiveDialog>
-
   </div>
+  <VueTest></VueTest>
 </template>
 <script setup lang="ts">
 import LiveHead from "./components/LiveHead.vue";
@@ -21,8 +21,6 @@ import LiveFooter from "./components/LiveFooter.vue";
 import { RouterView } from "vue-router";
 import { debounce } from "lodash";
 import { ref } from "vue";
-
-
 const is_close = ref<boolean>(false);
 const handleWheel = debounce(handleWheelOri, 100);
 function handleWheelOri(event: WheelEvent, is_live?: boolean) {

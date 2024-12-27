@@ -6,6 +6,7 @@ export const useDialogStore=defineStore('dialog',()=>
   const loginDialog = ref(false)
   const userInfoDialog = ref(false)
   const updatePasswordDialog = ref(false)
+  const roomInfoDialog=ref(false)
   const changeLoginDialog = ()=>{
     loginDialog.value=!loginDialog.value
     console.log(loginDialog.value)
@@ -18,13 +19,19 @@ export const useDialogStore=defineStore('dialog',()=>
   {
     updatePasswordDialog.value=!updatePasswordDialog.value
   }
+  const changeRoomInfoDialog = ()=>
+  {
+    roomInfoDialog.value=!roomInfoDialog.value
+  }
 return {
   loginDialog,
   userInfoDialog,
+  roomInfoDialog,
   changeLoginDialog,
   changeUserInfoDialog,
   updatePasswordDialog,
-  changeUpdatePasswordDialog
+  changeUpdatePasswordDialog,
+  changeRoomInfoDialog
 }
 }
 )

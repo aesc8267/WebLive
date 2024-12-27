@@ -22,5 +22,22 @@ function changePassword(oldPassword: string, newPassword: string,confirmPassword
     }
 });
 }
+function get_rid(){
+  return axios.get('api/users/rid').catch(error=>{
+    console.log("请求失败！"+error);
+})
 
-export {changePassword};
+}
+function apiChangeAvatar(url:string)
+{
+  return axios.post('api/users/change_avatar',{},{
+    params:{
+      avatarUrl:url
+    }
+  }).catch(
+    error=>{
+      console.log("请求失败！"+error);
+    }
+  )
+}
+export {changePassword,get_rid,apiChangeAvatar};

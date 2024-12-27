@@ -1,12 +1,12 @@
 import axios from "axios";
 interface room {
-  category_id:number;
-  item_type: string;
+  category_id?:number;
+  identifier: string;
   title: string;
-  sell_point: string;
-  price: number;
-  num: number;
-  images: string;
+  sell_point?: string;
+  price?: number;
+  num?: number;
+  images?: Array<string>;
 }
 function apiRoomsInsert(params:room) {
   return axios.post(
@@ -30,4 +30,15 @@ function apiRoomDetail(rid:number){
     console.log("请求失败！"+error);
 })
 }
-export { apiRoomsInsert,apiRoomsHotList,apiRoomDetail};
+function apiSetSatus(status:number){
+  return axios.post('api/rooms/set_status',{},{
+    params:{
+      status
+    }
+  }).catch(
+    error=>{
+      console.log("请求失败！"+error);
+    }
+  )
+}
+export { apiRoomsInsert,apiRoomsHotList,apiRoomDetail,apiSetSatus};

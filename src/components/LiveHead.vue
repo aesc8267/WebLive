@@ -2,18 +2,14 @@
   <!-- <el-affix position="top" :offset="0" > -->
   <!-- <div class="live-nav-div" :class="{'is-close':modelValue}" > -->
   <div class="live-nav" :class="['is-open', { 'is-close': isClose }]">
-    <RouterLink
-      :to="{
-        path: '/host',
-        query: {},
-      }"
-    >
-      <img
-        class="live-nav-logo"
-        src="/src/assets/images/BBSkip.png"
-        alt="开启直播！"
-      />
-    </RouterLink>
+      <div class="begin-live" @click="dialogStore.changeRoomInfoDialog">
+        <img
+          class="live-nav-logo"
+          src="/src/assets/images/BBSkip.png"
+          alt="开启直播！"
+        />
+        <p>我要开播！</p>
+      </div>
     <el-input
       class="live-nav-input"
       v-model="searchInfo"
@@ -27,13 +23,15 @@
     <div class="live-nav-right">
       <IconLike />
       <IconFriends />
-
       <IconMessage />
-
       <el-dropdown :class="['drop-menu', { 'not-show': !isShow }]">
         <IconHistory />
         <template #dropdown>
-          <HistoryItem v-for="(item, index) in historyList" :key="index" @click="join(item.peerid,item.host,item.isOpen)">
+          <LiveItem
+            v-for="(item, index) in historyList"
+            :key="index"
+            @click="join(item.peerid, item.host, item.isOpen)"
+          >
             <template #cover>
               <img :src="item.cover" alt="eden" />
             </template>
@@ -46,10 +44,33 @@
             <template #host>
               <p>{{ item.host }}</p>
             </template>
-          </HistoryItem>
+          </LiveItem>
         </template>
       </el-dropdown>
-      <IconSubscribe />
+
+      <el-dropdown :class="['drop-menu', { 'not-show': !isShow }]">
+        <IconSubscribe />
+        <template #dropdown>
+          <LiveItem
+            v-for="(item, index) in historyList"
+            :key="index"
+            @click="join(item.peerid, item.host, item.isOpen)"
+          >
+            <template #cover>
+              <img :src="item.cover" alt="eden" />
+            </template>
+            <template #title>
+              <b>{{ item.title }} </b>
+            </template>
+            <template #time>
+              <p>{{ item.time }}</p>
+            </template>
+            <template #host>
+              <p>{{ item.host }}</p>
+            </template>
+          </LiveItem>
+        </template>
+      </el-dropdown>
     </div>
     <div
       :class="['live-nav-avator', { 'not-show': isShow }]"
@@ -113,7 +134,7 @@ const historyList: Array<historyItem> = [
   },
 ];
 const dialogStore = useDialogStore();
-const router=useRouter()
+const router = useRouter();
 
 let avatar = ref<string>();
 let isShow = ref<boolean>(false);
@@ -130,7 +151,7 @@ onMounted(() => {
   }
   let temp = localStorage.getItem("avatar");
   if (temp !== null) {
-    avatar.value = "/public/avatar/" + temp;
+    avatar.value = temp;
     console.log(temp);
   } else {
     avatar.value = "/src/assets/images/avatar.svg";
@@ -139,20 +160,19 @@ onMounted(() => {
 const search = () => {
   window.open(engine + searchInfo.value, "_blank");
 };
-const join =(peerid:string,name:string,isOpen:boolean)=>{
-  if(isOpen){
+const join = (peerid: string, name: string, isOpen: boolean) => {
+  if (isOpen) {
     router.push({
       path: "/audience",
       query: {
         id: peerid,
-        name:name,
+        name: name,
       },
     });
-  }
-  else {
+  } else {
     ElMessage.error("主包没有开播！");
   }
-}
+};
 </script>
 <style lang="scss" scoped>
 .live-nav {
@@ -175,11 +195,11 @@ const join =(peerid:string,name:string,isOpen:boolean)=>{
     background-color: #f2e5ea;
     // border-radius: 1.25rem;
     // border: solid 0.063rem #d3c2ca;
-    >*{
-      transition:  transform 0.3s ease;
-    &:hover{
-      transform:scale(1.2)
-    }
+    > * {
+      transition: transform 0.3s ease;
+      &:hover {
+        transform: scale(1.2);
+      }
     }
   }
   &-input {
@@ -240,27 +260,42 @@ const join =(peerid:string,name:string,isOpen:boolean)=>{
   bottom: 0.1rem;
   height: 3rem;
   width: 3rem;
-  border-radius: 50%;
-  overflow: hidden;
   // border: #81737a solid 0.063rem;
   margin: 0 0.1rem 0.3rem 0;
   img {
     height: 110%;
+    border-radius: 50%;
+    aspect-ratio: 1;
     object-fit: cover;
   }
 }
 .not-show {
   display: none;
 }
-.live-nav-logo {
-  height: 110%;
+.begin-live {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
   position: relative;
   margin-left: 3rem;
-      transition:  transform 0.3s ease;
-    &:hover{
-      transform:scale(1.2)
+  bottom: 0.4rem;
+  cursor: pointer;
+  p {
+    font-family: fantasy;
+    font-size: xx-small;
+    margin: 0;
+
+  }
+  .live-nav-logo {
+    height: 100%;
+    transition: transform 0.3s ease;
+    &:hover {
+      transform: scale(1.2);
     }
+  }
 }
+
 .button-group {
   display: flex;
   justify-content: start;
@@ -275,7 +310,7 @@ const join =(peerid:string,name:string,isOpen:boolean)=>{
   * {
     outline: none;
   }
-  &:hover{
+  &:hover {
     transform: scale(1.2);
   }
 }

@@ -3,23 +3,25 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 /*@ts-expect-error*/
 import SrsRtcPlayerAsync from "@/utils/srs.sdk.js";
-import {
-  onBeforeUnmount,
-  onMounted,
-  ref,
-} from "vue";
+import EmojiPicker, { type EmojiExt } from "vue3-emoji-picker";
+import "vue3-emoji-picker/css";
+import { onBeforeUnmount, onMounted, ref } from "vue";
 import { Peer, DataConnection, MediaConnection } from "peerjs";
+import VideoPlayer from "vue-video-player";
+import "video.js/dist/video-js.css";
+import { apiRoomsInsert, apiSetSatus } from "@/api/room-controller";
+import { useRoute } from "vue-router";
 let liveSettingDrawer = ref(false);
 let roomInfoDrawer = ref(false);
 let streamSourceDrawer = ref(false);
-
+const route=useRoute()
 const peer = new Peer({ debug: 2 });
 let conn: DataConnection;
 let mediaOpen: MediaConnection | null = null;
 let openLiveTimes = 0;
 let parent: DataConnection | null = null;
 let ifAutoScroll = ref<boolean>(true);
-let localStream: MediaStream | null
+let localStream: MediaStream | null;
 let remoteStream: MediaStream | null = null;
 let audiences = new Array();
 let audienceIds = new Array();
@@ -52,12 +54,11 @@ const LiveTitle = ref<string>();
 // const LiveSummary = ref<HTMLTextAreaElement>();
 const LiveSummary = ref<string>("hello world");
 // const LiveCoverURL = ref<HTMLInputElement>();
-const LiveCoverURL = ref<string>("public/images/eden.png");
 // const MyName = ref<HTMLInputElement>();
 const MyName = ref<string>("hello world");
 const streamSource = ref<HTMLDivElement>();
 const chatBox = ref<HTMLElement>();
-const sendMessageBox = ref<HTMLInputElement>();
+const sendMessageBox = ref<string>("");
 const sendButton = ref<HTMLButtonElement>();
 const liveSetting = ref<HTMLDivElement>();
 const openRoomInfoDiv = ref<HTMLElement>();
@@ -76,8 +77,11 @@ const ifUseMicrophone = ref<boolean>(false);
 const connectRoot = ref<HTMLDivElement>();
 const msgImgInput = ref<HTMLInputElement>();
 const ifAutoClean = ref<HTMLInputElement>();
-let coverURL = "";
-const avatar = "/public/avatar/" + localStorage.getItem("avatar");
+const LiveCoverURL = ref<string>(route.query.coverURL as string);
+let coverURL=''
+const roomName = ref<string>(route.query.roomTitle as string);
+const roomAbout = ref<string>(route.query.roomSummary as string);
+const avatar = ref(localStorage.getItem("avatar")!);
 const isLogIn = localStorage.getItem("isLogin") === "true";
 onMounted(() => {
   // Listen for the event when a Peer connection is successfully opened
@@ -107,11 +111,21 @@ onMounted(() => {
     console.log(id);
     ElMessage.success("Your ID:" + id);
     ElMessage.warning("Status: Connecting to Root Node...");
-    if (urlInfo[0]) {
-      tryConnect(3, urlInfo[0], false, false);
-    } else {
-      ElMessage.warning("Status: Root Node here now(private)");
-    }
+    let roomParams = {
+      // category_id:number;
+      identifier: id,
+      title: roomName.value,
+      // sell_point: string;
+      // price: number;
+      // num: number;
+      // images: [LiveCoverURL.value],
+    };
+    apiRoomsInsert(roomParams).then((res) => {
+      console.log(res);
+      apiSetSatus(2).then((res) => {
+        console.log("status", res);
+      });
+    });
   });
 
   // When a new connection request is received, this code creates a data channel and sends the local or remote stream (if available) and text messages.
@@ -266,6 +280,9 @@ onMounted(() => {
 });
 onBeforeUnmount(() => {
   console.log("host unmounted");
+  apiSetSatus(1).then((res) => {
+    console.log("status", res);
+  });
   peer.destroy(); // 清理所有peer 产生的资源
 });
 // *This function is expected to retrieve the local stream, which could be a stream from the camera or microphone.
@@ -509,7 +526,7 @@ function sendMsg() {
     0,
     peer.id,
     MyName.value,
-    sendMessageBox.value!.value,
+    sendMessageBox.value,
     msgImgBase64,
     myIcon,
   ]; //*This line of code creates an array called "msg" and assigns it two values. The first value is the value of the element with the ID "name", and the second value is the value of the element with the ID "sendMessageBox". These values are used to construct the message that will be sent.
@@ -518,7 +535,7 @@ function sendMsg() {
     if (liveSend(msg) > 0) {
       // *This condition checks if the "liveSend" function returns a value greater than 0 when called with the "msg" array and 0 as arguments. If it does, it means the message was sent successfully.
       appearMsg(msg); // This function is responsible for displaying the own sent message
-      sendMessageBox.value!.value = "";
+      sendMessageBox.value = "";
       // console.log("Sent successfully: " + msg);    // DEBUG
       msgImgBase64 = null;
       msgImgInput.value!.files = null;
@@ -526,10 +543,8 @@ function sendMsg() {
       console.log("Connection is closed");
     }
   } else {
-    sendMessageBox.value!.setAttribute(
-      "placeholder",
-      "Void content!!!!!!!!!!!!!!"
-    ); //*This line of code sets the placeholder attribute of the element with the ID "sendMessageBox" to display a message indicating that the content should not be empty.
+    // pass
+    //*This line of code sets the placeholder attribute of the element with the ID "sendMessageBox" to display a message indicating that the content should not be empty.
   }
 }
 function getMyName() {
@@ -708,45 +723,50 @@ function shallowSearch(arr: Array<any>, t: number) {
   } // else { console.log("give up connecting to "+ arr[i]); }
 }
 function useDisplayMedia() {
-    navigator.mediaDevices
-      .getDisplayMedia({ video: true, audio: true })
-      .then((stream) => {
-        // After successfully obtaining the local stream, display it on the page.
-        localStream = stream;
-        displayStream(localStream)
-        console.log("Local stream shared");
-      })
-      .catch((error) => {
-        console.error("Error getting local stream:", error);
-      });
-  }
+  navigator.mediaDevices
+    .getDisplayMedia({ video: true, audio: true })
+    .then((stream) => {
+      // After successfully obtaining the local stream, display it on the page.
+      localStream = stream;
+      displayStream(localStream);
+      console.log("Local stream shared");
+    })
+    .catch((error) => {
+      console.error("Error getting local stream:", error);
+    });
+}
 
-  function askNavigatorMediaDevices(ifUseCamera:boolean,ifUseMicrophone:boolean) {
-    const constraints = {
-      audio: ifUseCamera,
-      video:ifUseMicrophone
-    };
-    navigator.mediaDevices
-      .getUserMedia(constraints)
-      .then(function (stream) {
-        localStream = stream;
-        displayStream(localStream)
-        console.log("Local stream shared");
-      })
-      .catch(function (err) {
-        console.error("Error getting local stream:", err);
-      });
-  }
+function askNavigatorMediaDevices(
+  ifUseCamera: boolean,
+  ifUseMicrophone: boolean
+) {
+  const constraints = {
+    audio: ifUseCamera,
+    video: ifUseMicrophone,
+  };
+  navigator.mediaDevices
+    .getUserMedia(constraints)
+    .then(function (stream) {
+      localStream = stream;
+      displayStream(localStream);
+      console.log("Local stream shared");
+    })
+    .catch(function (err) {
+      console.error("Error getting local stream:", err);
+    });
+}
 
-  function shareSRSMediaStream(url: string) {
-    url = "webrtc://" + url;
-    const rtcPlayer = new SrsRtcPlayerAsync();
-    rtcPlayer.play(url);
-    localStream = rtcPlayer.stream;
-    displayStream(localStream)
-  }
-const roomName = ref("瓶子君152");
-const roomAbout = ref("周二读书会");
+function shareSRSMediaStream(url: string) {
+  url = "webrtc://" + url;
+  const rtcPlayer = new SrsRtcPlayerAsync();
+  rtcPlayer.play(url);
+  localStream = rtcPlayer.stream;
+  displayStream(localStream);
+}
+const onVue3EmojiPicker = (emoji: EmojiExt) => {
+  console.log(emoji.i);
+  sendMessageBox.value += emoji.i;
+};
 </script>
 <template>
   <div class="host">
@@ -803,7 +823,7 @@ const roomAbout = ref("周二读书会");
       </div>
     </el-drawer>
     <!-- Detail of Room -->
-    <el-drawer v-model="roomInfoDrawer">
+    <!-- <el-drawer v-model="roomInfoDrawer">
       <div id="openRoomInfo" ref="openRoomInfoDiv">
         <img id="roomCover" :src="roomCover" />
         <div id="roomText">
@@ -827,17 +847,14 @@ const roomAbout = ref("周二读书会");
           Close
         </el-button>
       </div>
-    </el-drawer>
+    </el-drawer> -->
     <!-- Stream Source -->
     <el-drawer v-model="streamSourceDrawer">
       <div id="streamSource" ref="streamSource">
         <div class="box" id="onlyPC" ref="onlyPC" style="margin-top: 10px">
           <div style="font-weight: bold">
             Share PC Desktop:<br />
-            <el-button
-              id="browserDisplayMedia"
-              @click="useDisplayMedia()"
-            >
+            <el-button id="browserDisplayMedia" @click="useDisplayMedia()">
               Use Display Stream
             </el-button>
           </div>
@@ -847,12 +864,7 @@ const roomAbout = ref("周二读书会");
             Share Local Devices:
             <el-button
               id="browserNavigatorMediaDevices"
-              @click="
-                askNavigatorMediaDevices(
-                  ifUseCamera,
-                  ifUseMicrophone
-                )
-              "
+              @click="askNavigatorMediaDevices(ifUseCamera, ifUseMicrophone)"
             >
               Upload Local Device</el-button
             ><br />
@@ -932,15 +944,15 @@ const roomAbout = ref("周二读书会");
           <div class="live-control-box">
             <!-- Receiver -->
             <!-- <div style="font-weight: bold">Host</div> -->
-            <el-button id="refreshel-button" @click="refreshMap(0)"
+            <!-- <el-button id="refreshel-button" @click="refreshMap(0)"
               >Refresh</el-button
-            >
-            <el-button
+            > -->
+            <!-- <el-button
               id="openRoomInfoel-button"
               @click="roomInfoDrawer = true"
             >
               Room Info</el-button
-            ><br />
+            ><br /> -->
             <el-button
               id="chooseStreamSource"
               @click="streamSourceDrawer = true"
@@ -950,7 +962,11 @@ const roomAbout = ref("周二读书会");
             <el-button id="roomSetting" @click="showLive">
               Room Setting
             </el-button>
-            <div id="connectRoot" ref="connectRoot" style="visibility: hidden">
+            <div
+              id="connectRoot"
+              ref="connectRoot"
+              style="display: none; visibility: hidden"
+            >
               Join a root node:<input
                 type="text"
                 id="peerId"
@@ -1002,26 +1018,36 @@ const roomAbout = ref("周二读书会");
         ></div>
         <div class="sendInput">
           <!-- Send box -->
-          <input
+          <el-input
             type="text"
-            id="sendMessageBox"
-            ref="sendMessageBox"
+            v-model="sendMessageBox"
             @keypress="enter"
             placeholder="Input message here..."
-            autofocus="true"
-          />
-          <el-button id="uploadImgel-button">Img</el-button>
+          >
+            <template #prepend>
+              <el-dropdown
+                placement="top-end"
+                :teleported="false"
+                trigger="click"
+              >
+                <el-icon>
+                  <IconFace style="transform: scale(1.7)" />
+                </el-icon>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <EmojiPicker
+                      :native="true"
+                      class="emoji-picker"
+                      @select="onVue3EmojiPicker"
+                    />
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
+            </template>
+          </el-input>
           <el-button id="sendel-button" ref="sendel-button" @click="sendMsg()">
             Send</el-button
-          ><br />
-          <input
-            id="msgImgInput"
-            ref="msgImgInput"
-            type="file"
-            onchange="sendImg()"
-            style="display: none"
-          />
-          <el-button @click="cleanMsg()">CleanMsgs</el-button><br />
+          >
         </div>
       </div>
     </div>
@@ -1040,7 +1066,19 @@ const roomAbout = ref("周二读书会");
 
 .live-control-box {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  // border: solid 0.063rem black ;
+  flex: 1.2;
+  > * {
+    border-radius: 0;
+    border-right: none;
+    width: 100%;
+    flex: 1;
+    padding: 0;
+    margin: 0;
+  }
 }
 .videoBox {
   width: 100%;
@@ -1062,22 +1100,27 @@ const roomAbout = ref("周二读书会");
   .video-player-head {
     display: flex;
     flex-direction: row;
+
     align-items: center;
-    padding: 0 2rem;
+    padding: 0 0 0 2rem;
     border: solid 0.063rem #d3c2ca;
     height: 15%;
     &-avator {
       height: 110%;
+
       margin-right: 1rem;
       padding: 1rem 0;
+      flex: 1;
       img {
         height: 100%;
+        aspect-ratio: 1;
         border-radius: 50%;
         object-fit: cover;
       }
     }
     &-title {
       display: flex;
+      flex: 8;
       flex-direction: column;
       justify-content: center;
       padding: 1rem 1rem;
@@ -1091,6 +1134,7 @@ const roomAbout = ref("周二读书会");
   #chatContainer {
     display: flex;
     flex-direction: column;
+    align-items: center;
     border-radius: 2.5rem;
     width: 38.88rem;
     border: solid 0.063rem #d3c2ca;
@@ -1102,11 +1146,12 @@ const roomAbout = ref("周二读书会");
       height: 80%;
     }
     .sendInput {
-      width: 100%;
+      width: 50%;
       display: flex;
       justify-content: center;
     }
     .chat-room-head {
+      width: 100%;
       display: flex;
       flex-direction: column;
       align-items: start;
@@ -1114,6 +1159,11 @@ const roomAbout = ref("周二读书会");
       border: solid 0.063rem #d3c2ca;
       height: 5rem;
     }
+  }
+}
+.emoji-picker {
+  * {
+    flex-shrink: 1;
   }
 }
 </style>
