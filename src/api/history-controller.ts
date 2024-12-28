@@ -1,10 +1,14 @@
-import { get_rid } from "./user-controller";
+import axios from "axios";
 
- function  roomHistoryInsert()
-{ get_rid().then(
-  (res)=>{
-    console.log(res)
-  }
-);
+ function  roomHistoryInsert(rid:string)
+{
+  return axios.post('api/RoomHistory/insert',{},{
+    params:{
+      rid:rid
+    }
+  }).catch(error=>{
+    console.log(error);
+})
 }
+
 export {roomHistoryInsert}

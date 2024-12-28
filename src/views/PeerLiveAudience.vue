@@ -119,6 +119,7 @@ import { roomHistoryInsert } from "@/api/history-controller";
 import EmojiPicker, { type EmojiExt } from "vue3-emoji-picker";
 import "vue3-emoji-picker/css";
 
+let hostRid=ref()
 const peer = new Peer({ debug: 2 });
 const route = useRoute();
 const roomName = ref("瓶子君152");
@@ -218,7 +219,6 @@ onMounted(() => {
     hereNode = [1, 0, 0, [], id, getMyName(), []];
     console.log("Your ID:" + id);
     ElMessage.warning("Status: Connecting to Live Room...");
-    roomHistoryInsert();
     tryConnect(0, urlId!, false, false); // try to connect to the room
   });
   // When a new connection request is received, this code creates a data channel and sends the local or remote stream (if available) and text messages.
@@ -226,9 +226,10 @@ onMounted(() => {
     connIds.push(connPort.peer);
     conns.push(connPort);
     conn = connPort;
-    // 插入历史记录
     conn.on("open", () => {
       // for guest in index
+      let sendMessage=[0,hostRid.value]// 将直播间的rid 广播
+      conn.send(sendMessage)
       let sendNodesMap = nodesMap;
       sendNodesMap[2] = -1;
       conn.send(sendNodesMap);
@@ -451,17 +452,13 @@ function tryConnect(
         // console.log("parent.on data")
         switch (data[0]) {
           case 0:
-            // console.log('Received data:', data); // DEBUG
-            deliverId = data[1];
-            data[1] = peer.id; // make sure msg[2] keep last id of deliver
-
-            if (liveSend(data) > 0) {
-              console.log("Msg delivered successfully: " + data);
-            } else {
-              console.log("Msg delivered failed");
-            }
-
-            appearMsg(data);
+            console.log('host rid:',data[1])
+            hostRid.value=data[1];
+            roomHistoryInsert(hostRid.value).then(
+              ()=>{
+                console.log('history insert success')
+              }
+            );
             break;
           case 1:
             if (data[1] == -1) {

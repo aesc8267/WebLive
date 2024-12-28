@@ -53,7 +53,6 @@
             ></el-input>
           </el-form-item>
           <el-form-item label="请上传头像" :class="{ disappear: !showSignUp }">
-            <!-- <input type="file" @change="changeAvatar" accept="image/*" /> -->
             <el-upload
               :class="{ disappear: !showSignUp }"
               ref="upload"
@@ -82,6 +81,7 @@
             <el-button
               :class="{ disappear: !showSignUp }"
               type="primary"
+              style="margin-left: 0"
               @click="showSignUp = false"
               >返回登录</el-button
             >
@@ -105,7 +105,7 @@
             <!-- <input type="file" @change="changeAvatar" accept="image/*" /> -->
             <el-upload
               ref="changeAvatar"
-              :http-request="uploadAvatar"
+              :http-request="uploadNewAvatar"
               class="avatar-uploader"
               :auto-upload="false"
               :limit="1"
@@ -153,10 +153,9 @@
               :on-exceed="handleCoverExceed"
               :before-upload="beforeUpload"
             >
-              <img v-if="imageUrl" :src="imageUrl" class="cover" />
-              <el-icon v-else class="cover-uploader-icon"><Plus /></el-icon>
+              <el-icon class="cover-uploader-icon"><Plus /></el-icon>
               <template #tip>
-                <div class="el-upload__tip text-red">
+                <div class="el-upload__tip text-red" style="overflow:hidden">
                   limit 1 file, new file will cover the old file
                 </div>
               </template>
@@ -191,7 +190,7 @@
 <script lang="ts" setup name="LiveDialog">
 import { useDialogStore } from "@/stores/dialog";
 import { useUserStore } from "@/stores/user";
-import { apiChangeAvatar, changePassword } from "@/api/user-controller";
+import { apiChangeAvatar, apiReg, changePassword } from "@/api/user-controller";
 import axios from "axios";
 import { onMounted, ref } from "vue";
 import { storeToRefs } from "pinia";
@@ -212,7 +211,7 @@ const coverUpload = ref<UploadInstance>();
 const { loginDialog, userInfoDialog, updatePasswordDialog, roomInfoDialog } =
   storeToRefs(dialogStore);
 
-const gender = ref();
+const gender = ref("male");
 const router = useRouter();
 const logInTitle = ref<string>("登录");
 const avatar = ref();
@@ -226,7 +225,6 @@ const newPassword = ref<string>("");
 const confirmPassword = ref<string>("");
 const oldPassword = ref<string>("");
 const changeAvatar = ref<UploadInstance>();
-const imageUrl = ref("");
 const signIn = () => {
   // console.log(username.value, password.value);
   loading.value = true;
@@ -263,39 +261,16 @@ const signIn = () => {
   return;
 };
 const signUp = () => {
-  // console.log(avatar.value);
-  loading.value = true;
+  console.log(avatar.value);
   logInTitle.value = "注册";
   if (!showSignUp.value) showSignUp.value = true;
   else {
+    if (!username.value || !password.value || !confirm_password.value) return;
     if (password.value != confirm_password.value) {
       ElMessage.error("两次密码不一致");
       return;
     }
     upload.value!.submit();
-    axios
-      .post(
-        "/api/users/reg",
-        {},
-        {
-          params: {
-            username: username.value,
-            password: password.value,
-            avatar: avatar.value,
-          },
-        }
-      )
-      .then((res) => {
-        if (res.data.state == 200) {
-          ElMessage.success("注册成功");
-          changeLoginDialog();
-          showSignUp.value = false;
-          return;
-        } else {
-          ElMessage.error(res.data.message);
-        }
-      });
-
     return;
   }
 };
@@ -332,28 +307,55 @@ const handleExceed: UploadProps["onExceed"] = (files) => {
   const file = files[0] as UploadRawFile;
   file.uid = genFileId();
   upload.value!.handleStart(file);
-
+};
+const uploadNewAvatar: UploadProps["httpRequest"] = ({ file }) => {
+  console.log(1);
+  loading.value = true;
+  return apiUpload(file)
+    .then((res) => {
+      console.log("图片", res);
+      console.log(res);
+      avatar.value = res!.data.data.links.url;
+      console.log(avatar.value);
+      apiChangeAvatar(avatar.value).then(() => {
+        localStorage.setItem("avatar", avatar.value);
+        signIn();
+      });
+    })
+    .catch((err) => {
+      loading.value = false;
+      console.log(err);
+      ElMessage.error("上传失败");
+    });
 };
 const uploadAvatar: UploadProps["httpRequest"] = ({ file }) => {
-    console.log(1);
-    loading.value = true;
-    return apiUpload(file)
-      .then((res) => {
-        console.log("图片", res);
-        console.log(res);
-        avatar.value = res!.data.data.links.url;
-        console.log(avatar.value);
-        apiChangeAvatar(avatar.value).then(() => {
-          localStorage.setItem("avatar", avatar.value);
+  console.log(1);
+  loading.value = true;
+  return apiUpload(file) //上传图片
+    .then((res) => {
+      console.log("图片", res);
+      avatar.value = res!.data.data.links.url;
+      localStorage.setItem("avatar", avatar.value);
+      apiReg(username.value, password.value, avatar.value).then((res) => {
+        //进行注册
+        if (res.data.state == 200) {
+          ElMessage.success("注册成功");
+          changeLoginDialog();
+          showSignUp.value = false;
           signIn();
-        });
-      })
-      .catch((err) => {
-        loading.value = false;
-        console.log(err);
-        ElMessage.error("上传失败");
+          return;
+        } else {
+          loading.value = false;
+          ElMessage.error(res.data.message);
+        }
       });
-  };
+    })
+    .catch((err) => {
+      loading.value = false;
+      console.log(err);
+      ElMessage.error("上传失败");
+    });
+};
 // 封面上传
 
 const uploadCover: UploadProps["httpRequest"] = ({ file }) => {
@@ -371,7 +373,7 @@ const uploadCover: UploadProps["httpRequest"] = ({ file }) => {
         query: {
           roomTitle: roomTitle.value,
           roomSummary: roomSummary.value,
-          coverUrl: imageUrl,
+          coverURL: imageUrl,
         },
       });
     })
@@ -411,6 +413,7 @@ const beforeUpload: UploadProps["beforeUpload"] = (rawFile) => {
     padding: 0;
   }
 }
+
 .room-info {
   display: flex;
   flex-direction: row;

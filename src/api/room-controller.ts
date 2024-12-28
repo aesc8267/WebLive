@@ -6,7 +6,7 @@ interface room {
   sell_point?: string;
   price?: number;
   num?: number;
-  images?: Array<string>;
+  image?:string;
 }
 function apiRoomsInsert(params:room) {
   return axios.post(

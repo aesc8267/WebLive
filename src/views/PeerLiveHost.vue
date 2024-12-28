@@ -11,10 +11,11 @@ import VideoPlayer from "vue-video-player";
 import "video.js/dist/video-js.css";
 import { apiRoomsInsert, apiSetSatus } from "@/api/room-controller";
 import { useRoute } from "vue-router";
+import { getRid } from "@/api/user-controller";
 let liveSettingDrawer = ref(false);
 let roomInfoDrawer = ref(false);
 let streamSourceDrawer = ref(false);
-const route=useRoute()
+const route = useRoute();
 const peer = new Peer({ debug: 2 });
 let conn: DataConnection;
 let mediaOpen: MediaConnection | null = null;
@@ -78,12 +79,16 @@ const connectRoot = ref<HTMLDivElement>();
 const msgImgInput = ref<HTMLInputElement>();
 const ifAutoClean = ref<HTMLInputElement>();
 const LiveCoverURL = ref<string>(route.query.coverURL as string);
-let coverURL=''
+let coverURL = "";
 const roomName = ref<string>(route.query.roomTitle as string);
 const roomAbout = ref<string>(route.query.roomSummary as string);
 const avatar = ref(localStorage.getItem("avatar")!);
 const isLogIn = localStorage.getItem("isLogin") === "true";
+let rid = ref();
 onMounted(() => {
+  window.addEventListener("beforeunload", handleBeforeUnload);
+  window.addEventListener("unload", handleUnload);
+
   // Listen for the event when a Peer connection is successfully opened
   // *Explanation: The provided code snippet is using the Peer.js library to establish a Peer connection. The peer.on('open', ...) code block is listening for the 'open' event, which is triggered when the Peer connection is successfully opened.
   if (!isLogIn) {
@@ -118,10 +123,11 @@ onMounted(() => {
       // sell_point: string;
       // price: number;
       // num: number;
-      // images: [LiveCoverURL.value],
+      image: LiveCoverURL.value,
     };
+    console.log("roomParams", roomParams);
     apiRoomsInsert(roomParams).then((res) => {
-      console.log(res);
+      rid.value = res!.data.data;
       apiSetSatus(2).then((res) => {
         console.log("status", res);
       });
@@ -137,6 +143,16 @@ onMounted(() => {
 
     conn.on("open", () => {
       // for guest in index
+      if (rid.value) {
+        let sendMessage = [0, rid.value];
+        conn.send(sendMessage);
+      } else {
+        getRid().then((res) => {
+          rid.value = res!.data.data;
+          let sendMessage = [0, rid.value];
+          conn.send(sendMessage);
+        });
+      }
       let sendNodesMap = nodesMap;
       sendNodesMap[2] = -1;
       conn.send(sendNodesMap);
@@ -278,13 +294,20 @@ onMounted(() => {
     onlyPC.value!.remove();
   }
 });
-onBeforeUnmount(() => {
-  console.log("host unmounted");
-  apiSetSatus(1).then((res) => {
-    console.log("status", res);
-  });
-  peer.destroy(); // 清理所有peer 产生的资源
-});
+const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+  const message="当前正在直播中，确定要离开吗？"
+  event.preventDefault();
+  return message
+  };
+  const handleUnload = () => {
+  // 使用 sendBeacon 发送数据
+  const url = 'api/rooms/set_status?status=1';  // 设置状态的服务器接口
+  navigator.sendBeacon(url);  // 异步发送数据，不会阻止页面关闭
+
+  // 清理 peer 产生的资源
+  peer.destroy(); // 清理所有 peer 产生的资源
+};
+
 // *This function is expected to retrieve the local stream, which could be a stream from the camera or microphone.
 function streamSourceMenu() {
   streamSourceDrawer.value = false;

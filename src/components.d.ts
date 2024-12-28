@@ -48,6 +48,7 @@ declare module 'vue' {
     IconSupport: typeof import('./components/icons/IconSupport.vue')['default']
     IconTooling: typeof import('./components/icons/IconTooling.vue')['default']
     LiveAbout: typeof import('./components/LiveAbout.vue')['default']
+    LiveAboutItem: typeof import('./components/basic/LiveAboutItem.vue')['default']
     LiveAudience: typeof import('./components/LiveAudience.vue')['default']
     LiveDialog: typeof import('./components/LiveDialog.vue')['default']
     LiveFooter: typeof import('./components/LiveFooter.vue')['default']

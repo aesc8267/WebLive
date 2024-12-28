@@ -1,30 +1,61 @@
 <template>
   <div class="live-footer">
-    <!-- <div id="rooms" ref="roomsDiv" v-if="rooms.length">
-    <div v-for="(room, index) in filteredRooms" :key="index"
-      :style="{ backgroundImage: 'url($room[6])', backgroundSize: 'contain' }" @click="displayRoomInfo(index)"
-      ref="roomFor">
-      <span>{{ room[4] }}</span>
-      <span class="members-count" style="position: absolute; bottom: 0"></span>
-      Members: {{ room[2].length }}
-    </div>
-  </div> -->
-
-  <div class="test">
-
-  </div>
+    <LiveAboutItem v-for="(room, index) in rooms" :key="index" @click="join(room.identifier)">
+      <template #cover>
+        <img :src="room.image" />
+      </template>
+      <template #title>
+        <p v-if="room.title.length > 14">{{ room.title.slice(0, 14) }}...</p>
+        <p v-else>{{ room.title }}</p>
+      </template>
+    </LiveAboutItem>
   </div>
 </template>
 
 <script setup lang="ts">
-import { apiRoomsHotList } from '@/api/room-controller';
-// const params={ 
-
-// }
-apiRoomsHotList().then(res => {
-  console.log(res);
-})
+interface roomType {
+  categoryId: string;
+  createdTime: string;
+  createdUser: string;
+  identifier: string;
+  image: string;
+  modifiedTime: string;
+  modifiedUser: string;
+  num: string;
+  price: string;
+  priority: string;
+  rid: string;
+  sellPoint: string;
+  status: string;
+  title: string;
+  uid: string;
+}
+import { apiRoomsHotList } from "@/api/room-controller";
+import { onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
+const rooms = ref<Array<roomType>>();
+const router = useRouter();
+onMounted(() => {
+  apiRoomsHotList().then((res) => {
+    console.log("hot_list", res);
+    rooms.value = res!.data.data as Array<roomType>;
+    console.log(rooms.value[0].rid);
+  });
+});
+function join(peerId:string) {
+    router.push({
+      path: "/audience",
+      query: { id: peerId, name: localStorage.getItem("username") },
+    });
+    window.location.reload();
+}
 </script>
 
 <style lang="scss" scoped>
+.live-footer {
+  padding: 0 0 0 2.5rem;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
 </style>

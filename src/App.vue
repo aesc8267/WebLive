@@ -8,10 +8,14 @@
       @wheel="handleWheel($event, true)"
       class="router-view"
     ></RouterView>
+    <el-divider>
+      <template #default>
+        <b>推荐直播</b>
+      </template>
+    </el-divider>
     <LiveFooter @wheel="handleWheel"></LiveFooter>
     <LiveDialog></LiveDialog>
   </div>
-  <VueTest></VueTest>
 </template>
 <script setup lang="ts">
 import LiveHead from "./components/LiveHead.vue";
