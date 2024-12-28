@@ -46,8 +46,10 @@ function join(peerId:string) {
     router.push({
       path: "/audience",
       query: { id: peerId, name: localStorage.getItem("username") },
+    }).then(()=>{
+      window.location.reload();
     });
-    window.location.reload();
+
 }
 </script>
 

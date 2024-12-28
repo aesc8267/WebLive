@@ -12,6 +12,8 @@ import "video.js/dist/video-js.css";
 import { apiRoomsInsert, apiSetSatus } from "@/api/room-controller";
 import { useRoute } from "vue-router";
 import { getRid } from "@/api/user-controller";
+import { useDialogStore } from "@/stores/dialog";
+const dialog=useDialogStore()
 let liveSettingDrawer = ref(false);
 let roomInfoDrawer = ref(false);
 let streamSourceDrawer = ref(false);
@@ -35,12 +37,6 @@ let deliverId: null = null;
 let root: DataConnection | null = null;
 const WebVideo = ref<HTMLVideoElement>();
 let params = new URLSearchParams(document.location.search.substring(1));
-let urlInfo = [
-  params.get("rootId"),
-  params.get("title"),
-  params.get("summary"),
-  params.get("coverURL"),
-];
 let liveCoverBase64: null = null;
 let msgImgBase64: null = null;
 let guest: DataConnection | null = null;
@@ -50,17 +46,10 @@ let bridge: DataConnection | null = null;
 let fullWebVideoTimes = 0;
 let myIcon = "";
 let temporaryChosedNodes = new Array();
-
-const LiveTitle = ref<string>();
-// const LiveSummary = ref<HTMLTextAreaElement>();
-const LiveSummary = ref<string>("hello world");
-// const LiveCoverURL = ref<HTMLInputElement>();
-// const MyName = ref<HTMLInputElement>();
 const MyName = ref<string>("hello world");
 const streamSource = ref<HTMLDivElement>();
 const chatBox = ref<HTMLElement>();
 const sendMessageBox = ref<string>("");
-const sendButton = ref<HTMLButtonElement>();
 const liveSetting = ref<HTMLDivElement>();
 const openRoomInfoDiv = ref<HTMLElement>();
 const peerId = ref<HTMLInputElement>();
@@ -102,13 +91,13 @@ onMounted(() => {
       1,
       [id],
       0,
-      LiveTitle.value,
-      LiveSummary.value,
+      roomName.value,
+      roomAbout.value,
       LiveCoverURL.value,
       id,
       getMyName(),
       childNodes,
-      urlInfo[0],
+      avatar.value,
     ];
     //childNodes=[0.dataType, 1.sourceMark, 2.NumberOfchildNodes, 3.unused for you ]
     childNodes = [1, 1, 0, [], id, getMyName(), []];
@@ -144,12 +133,12 @@ onMounted(() => {
     conn.on("open", () => {
       // for guest in index
       if (rid.value) {
-        let sendMessage = [0, rid.value];
+        let sendMessage = [5, rid.value];
         conn.send(sendMessage);
       } else {
         getRid().then((res) => {
           rid.value = res!.data.data;
-          let sendMessage = [0, rid.value];
+          let sendMessage = [5, rid.value];
           conn.send(sendMessage);
         });
       }
@@ -313,19 +302,13 @@ function streamSourceMenu() {
   streamSourceDrawer.value = false;
 }
 
-function enter(e: any) {
-  let event = e && window.event;
-  if (event.which && event.keyCode == "13") {
-    sendButton.value!.click();
-  }
-}
 
 function showLive() {
   // if usr want to live
   if (!liveSettingDrawer.value) {
     openLiveTimes++;
-    LiveTitle.value = nodesMap[4];
-    LiveSummary.value = nodesMap[5];
+    roomName.value = nodesMap[4];
+    roomAbout.value = nodesMap[5];
     LiveCoverURL.value = coverURL;
     liveSettingDrawer.value = true;
   } else {
@@ -334,8 +317,8 @@ function showLive() {
 }
 
 function modify() {
-  nodesMap[4] = LiveTitle.value; // nodesMap update
-  nodesMap[5] = LiveSummary.value;
+  nodesMap[4] = roomName.value; // nodesMap update
+  nodesMap[5] = roomAbout.value;
   if (liveCoverBase64) {
     nodesMap[6] = liveCoverBase64;
   } else {
@@ -381,7 +364,7 @@ function recorder(data: any) {
     peer.id,
     getMyName(),
     childNodes,
-    urlInfo[0],
+    avatar.value,
   ];
   nodesMap[2] = getRoomIds();
   //record this node's info
@@ -561,7 +544,6 @@ function sendMsg() {
       sendMessageBox.value = "";
       // console.log("Sent successfully: " + msg);    // DEBUG
       msgImgBase64 = null;
-      msgImgInput.value!.files = null;
     } else {
       console.log("Connection is closed");
     }
@@ -793,91 +775,12 @@ const onVue3EmojiPicker = (emoji: EmojiExt) => {
 </script>
 <template>
   <div class="host">
-    <el-drawer v-model="liveSettingDrawer">
-      <div id="liveSetting" ref="liveSetting">
-        <img id="LiveCover" />
-        <div style="height: 100%; width: 30%; margin-top: 2%">
-          <input
-            type="text"
-            id="LiveTitle"
-            class="liveInput"
-            placeholder="Input your Room Title there..."
-          /><br />
-          <textarea
-            v-model="LiveSummary"
-            rows="5"
-            cols="33"
-            placeholder="Input your Summary there..."
-          ></textarea
-          ><br />
-        </div>
-        <div style="height: 100%; width: 30%; margin-top: 2%">
-          <input
-            type="text"
-            id="LiveCoverURL"
-            class="liveInput"
-            v-model="LiveCoverURL"
-            placeholder="URL of img served as Cover"
-          /><br />
-          <input
-            id="LiveCoverInput"
-            type="file"
-            onchange="liveCoverInput()"
-          />Upload Local Image<br /><br />
-          <el-button @click="peer.disconnect()">
-            Lock the room<br />(disconnect to PeerServer)
-          </el-button>
-          <el-button @click="peer.reconnect()"
-            >reconnect with original Id</el-button
-          >
-        </div>
-        <div>
-          <el-button
-            id="closeLiveMenu"
-            class="actionel-button"
-            @click="showLive()"
-          >
-            Close
-          </el-button>
-          <el-button id="modify" class="actionel-button" @click="modify()">
-            modify
-          </el-button>
-        </div>
-      </div>
-    </el-drawer>
-    <!-- Detail of Room -->
-    <!-- <el-drawer v-model="roomInfoDrawer">
-      <div id="openRoomInfo" ref="openRoomInfoDiv">
-        <img id="roomCover" :src="roomCover" />
-        <div id="roomText">
-          <div id="roomTitle">{{ roomTitle }}</div>
-          <textarea
-            id="roomSummary"
-            rows="5"
-            cols="33"
-            readonly
-            v-model="roomSummary"
-          ></textarea>
-          <div id="nodeInfo">
-            <div id="stable">
-              <el-button id="refreshMap" @click="refreshMap(0)"
-                >Refresh</el-button
-              >
-            </div>
-          </div>
-        </div>
-        <el-button id="closeInfo" class="actionel-button" @click="openRoomInfo">
-          Close
-        </el-button>
-      </div>
-    </el-drawer> -->
-    <!-- Stream Source -->
     <el-drawer v-model="streamSourceDrawer">
       <div id="streamSource" ref="streamSource">
         <div class="box" id="onlyPC" ref="onlyPC" style="margin-top: 10px">
           <div style="font-weight: bold">
             Share PC Desktop:<br />
-            <el-button id="browserDisplayMedia" @click="useDisplayMedia()">
+            <el-button  id="browserDisplayMedia" @click="useDisplayMedia()">
               Use Display Stream
             </el-button>
           </div>
@@ -965,24 +868,13 @@ const onVue3EmojiPicker = (emoji: EmojiExt) => {
             <h3>{{ roomAbout }}</h3>
           </div>
           <div class="live-control-box">
-            <!-- Receiver -->
-            <!-- <div style="font-weight: bold">Host</div> -->
-            <!-- <el-button id="refreshel-button" @click="refreshMap(0)"
-              >Refresh</el-button
-            > -->
-            <!-- <el-button
-              id="openRoomInfoel-button"
-              @click="roomInfoDrawer = true"
-            >
-              Room Info</el-button
-            ><br /> -->
             <el-button
               id="chooseStreamSource"
               @click="streamSourceDrawer = true"
             >
               Stream Source
             </el-button>
-            <el-button id="roomSetting" @click="showLive">
+            <el-button id="roomSetting" @click="dialog.changeRoomInfoDialog()">
               Room Setting
             </el-button>
             <div
@@ -1044,7 +936,7 @@ const onVue3EmojiPicker = (emoji: EmojiExt) => {
           <el-input
             type="text"
             v-model="sendMessageBox"
-            @keypress="enter"
+           @keyup.enter="sendMsg"
             placeholder="Input message here..."
           >
             <template #prepend>
@@ -1068,7 +960,7 @@ const onVue3EmojiPicker = (emoji: EmojiExt) => {
               </el-dropdown>
             </template>
           </el-input>
-          <el-button id="sendel-button" ref="sendel-button" @click="sendMsg()">
+          <el-button id="sendel-button" ref="sendel-button" @click="sendMsg">
             Send</el-button
           >
         </div>

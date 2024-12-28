@@ -6,20 +6,20 @@
         <div class="video-player-head">
           <div class="video-player-head-avator">
             <img :src="avatar" alt="头像" />
+            <el-button
+              class="subscribe"
+              :class="{ disappear: already }"
+              type="primary"
+              @click="subscribe"
+            >
+              关注我！
+            </el-button>
           </div>
           <div class="video-player-head-title">
-            <h2>{{ roomName }}</h2>
-            <h3>{{ roomAbout }}</h3>
+            <h2>{{ roomTitle }}</h2>
+            <h3>{{ roomSummary }}</h3>
           </div>
           <div class="live-control-box">
-            <!-- Receiver -->
-            <!-- <div style="font-weight: bold">Host</div> -->
-            <el-button id="refreshel-button" @click="refreshMap(0)"
-              >Refresh</el-button
-            >
-            <el-button @click="peer.reconnect"
-              >Reconnect to Peer Server</el-button
-            >
             <div id="connectRoot" ref="connectRoot" style="visibility: hidden">
               Join a root node:<input
                 type="text"
@@ -75,7 +75,7 @@
           <el-input
             type="text"
             v-model="sendMessageBox"
-            @keypress="enter"
+            @keyup.enter="sendMsg"
             placeholder="Input message here..."
           >
             <template #prepend>
@@ -99,7 +99,7 @@
               </el-dropdown>
             </template>
           </el-input>
-          <el-button id="sendel-button" ref="sendel-button" @click="sendMsg()">
+          <el-button id="sendel-button" ref="sendel-button" @click="sendMsg">
             Send</el-button
           >
         </div>
@@ -118,8 +118,13 @@ import SrsRtcPlayerAsync from "@/utils/srs.sdk.js";
 import { roomHistoryInsert } from "@/api/history-controller";
 import EmojiPicker, { type EmojiExt } from "vue3-emoji-picker";
 import "vue3-emoji-picker/css";
+import {
+  apiAddCollection,
+  apiGetCollectionList,
+} from "@/api/collection-controller";
 
-let hostRid=ref()
+let already = ref<boolean>(false);
+let hostRid = ref();
 const peer = new Peer({ debug: 2 });
 const route = useRoute();
 const roomName = ref("瓶子君152");
@@ -128,7 +133,7 @@ let conn: DataConnection;
 let mediaOpen: MediaConnection | null = null;
 let openInfoTimes = 0;
 let openLiveTimes = 0;
-const avatar = ref(localStorage.getItem("avatar")!);
+const avatar = ref();
 let parent: DataConnection;
 let ifAutoScroll = ref<boolean>(true);
 let localStream: MediaStream | null = null;
@@ -210,10 +215,6 @@ const onVue3EmojiPicker = (emoji: EmojiExt) => {
   sendMessageBox.value += emoji.i;
 };
 onMounted(() => {
-  // Listen for the event when a Peer connection is successfully opened
-  // *Explanation: The provided code snippet is using the Peer.js library to establish a Peer connection. The peer.on('open', ...) code block is listening for the 'open' event, which is triggered when the Peer connection is successfully opened.
-
-  // console.log(route.query)
   peer.on("open", (id) => {
     MyName.value = urlName!;
     hereNode = [1, 0, 0, [], id, getMyName(), []];
@@ -228,8 +229,8 @@ onMounted(() => {
     conn = connPort;
     conn.on("open", () => {
       // for guest in index
-      let sendMessage=[0,hostRid.value]// 将直播间的rid 广播
-      conn.send(sendMessage)
+      let sendMessage = [5, hostRid.value]; // 将直播间的rid 广播
+      conn.send(sendMessage);
       let sendNodesMap = nodesMap;
       sendNodesMap[2] = -1;
       conn.send(sendNodesMap);
@@ -452,18 +453,26 @@ function tryConnect(
         // console.log("parent.on data")
         switch (data[0]) {
           case 0:
-            console.log('host rid:',data[1])
-            hostRid.value=data[1];
-            roomHistoryInsert(hostRid.value).then(
-              ()=>{
-                console.log('history insert success')
-              }
-            );
+            // console.log('Received data:', data); // DEBUG
+            deliverId = data[1];
+            data[1] = peer.id; // make sure msg[2] keep last id of deliver
+
+            if (liveSend(data) > 0) {
+              console.log("Msg delivered successfully: " + data);
+            } else {
+              console.log("Msg delivered failed");
+            }
+            appearMsg(data);
             break;
           case 1:
             if (data[1] == -1) {
               break;
             } // refused to receive msg for guest
+            console.log(data);
+            roomTitle.value = data[4];
+            roomSummary.value = data[5];
+            roomCover.value = data[6];
+            avatar.value = data[10];
             recorder(data);
             break;
           case 3:
@@ -479,6 +488,24 @@ function tryConnect(
             } else {
               alert("host is not on live");
             }
+          case 5:
+            console.log("host rid:", data[1]);
+            hostRid.value = data[1];
+            roomHistoryInsert(hostRid.value).then(() => {
+              apiGetCollectionList().then((res) => {
+                if (res!.data) {
+                  const temp = res!.data.data as Array<any>;
+                  const rs = temp.filter((item) => {
+                    item === hostRid.value;
+                  });
+                  if (rs) {
+                    already.value = true;
+                  }
+                }
+              });
+              console.log("history insert success");
+            });
+            break;
           default:
             console.log("unknown data: " + data);
         }
@@ -768,20 +795,6 @@ function echoNodesMap(arr: any, layerNumber: any, aimId: any, fnOfEcho: any) {
   }
 }
 
-function refreshMap(fnOfEcho: any) {
-  roomTitle.value = nodesMap[4];
-  roomSummary.value = nodesMap[5];
-  roomCover.value = nodesMap[6];
-  echoNodesMap(nodesMap[9], 0, undefined, fnOfEcho); // refresh the menu
-}
-
-function cleanMsg() {
-  // DEBUG
-  let msgs = document.getElementsByClassName("msgs");
-  while (msgs.length) {
-    msgs[0].remove();
-  }
-}
 function sendMsg() {
   //*This line of code adds an event listener to the element with the ID "sendButton". It listens for a click event on the button and triggers the provided function when the event occurs.
   let msg = [
@@ -800,7 +813,6 @@ function sendMsg() {
       sendMessageBox.value = "";
       // console.log("Sent successfully: " + msg);    // DEBUG
       msgImgBase64 = null;
-      msgImgInput.value!.files = null;
     } else {
       console.log("Connection is closed");
     }
@@ -985,6 +997,11 @@ function autoJoin(t: number) {
     recursiveSearch(nodesMap[9], t); // search for the node with low child nodes
   }
 }
+function subscribe() {
+  apiAddCollection(hostRid.value, roomTitle.value!).then(() => {
+    already.value = true;
+  });
+}
 </script>
 <style scoped lang="scss">
 .audience {
@@ -1024,6 +1041,9 @@ function autoJoin(t: number) {
     border: solid 0.063rem #d3c2ca;
     height: 15%;
     &-avator {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       height: 110%;
       margin-right: 1rem;
       padding: 1rem 0;
@@ -1032,6 +1052,16 @@ function autoJoin(t: number) {
         aspect-ratio: 1;
         border-radius: 50%;
         object-fit: cover;
+      }
+      .subscribe {
+        width: 80%;
+        height: 1.5rem;
+        position: relative;
+        bottom: 1rem;
+        transition: all 0.3s ease;
+        span {
+          text-align: center;
+        }
       }
     }
     &-title {
@@ -1045,6 +1075,9 @@ function autoJoin(t: number) {
         color: rgb(255, 212, 35);
       }
     }
+  }
+  .disappear {
+    opacity: 0;
   }
   #chatContainer {
     display: flex;

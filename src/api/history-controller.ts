@@ -10,5 +10,9 @@ import axios from "axios";
     console.log(error);
 })
 }
-
-export {roomHistoryInsert}
+function getHistoryList(){
+  return axios.get('api/RoomHistory/getList').catch(error=>{
+    console.log(error);
+  })
+}
+export {roomHistoryInsert,getHistoryList}

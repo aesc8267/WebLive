@@ -1,15 +1,19 @@
 <template>
   <!-- <el-affix position="top" :offset="0" > -->
   <!-- <div class="live-nav-div" :class="{'is-close':modelValue}" > -->
-  <div class="live-nav" :class="['is-open', { 'is-close': isClose }]">
-      <div class="begin-live" @click="dialogStore.changeRoomInfoDialog">
-        <img
-          class="live-nav-logo"
-          src="/src/assets/images/BBSkip.png"
-          alt="开启直播！"
-        />
-        <p>我要开播！</p>
-      </div>
+  <div
+    v-loading="Loading"
+    class="live-nav"
+    :class="['is-open', { 'is-close': isClose }]"
+  >
+    <div class="begin-live" @click="dialogStore.changeRoomInfoDialog">
+      <img
+        class="live-nav-logo"
+        src="/src/assets/images/BBSkip.png"
+        alt="开启直播！"
+      />
+      <p>我要开播！</p>
+    </div>
     <el-input
       class="live-nav-input"
       v-model="searchInfo"
@@ -28,45 +32,45 @@
         <IconHistory />
         <template #dropdown>
           <LiveItem
-            v-for="(item, index) in historyList"
+            v-for="(item, index) in historyList?.slice(0, 4)"
             :key="index"
-            @click="join(item.peerid, item.host, item.isOpen)"
+            @click="join(item.rid, item.createdUser)"
           >
             <template #cover>
-              <img :src="item.cover" alt="eden" />
+              <img :src="item.image" alt="eden" />
             </template>
             <template #title>
               <b>{{ item.title }} </b>
             </template>
             <template #time>
-              <p>{{ item.time }}</p>
+              <p>{{ item.createdTime }}</p>
             </template>
             <template #host>
-              <p>{{ item.host }}</p>
+              <p style="font-style: italic">{{ item.createdUser }}</p>
             </template>
           </LiveItem>
         </template>
       </el-dropdown>
-
+<!-- 订阅 -->
       <el-dropdown :class="['drop-menu', { 'not-show': !isShow }]">
         <IconSubscribe />
         <template #dropdown>
           <LiveItem
-            v-for="(item, index) in historyList"
+            v-for="(item, index) in collectionList?.slice(0, 4)"
             :key="index"
-            @click="join(item.peerid, item.host, item.isOpen)"
+            @click="join(item.rid, item.createdUser)"
           >
             <template #cover>
-              <img :src="item.cover" alt="eden" />
+              <img :src="item.image" alt="eden" />
             </template>
             <template #title>
               <b>{{ item.title }} </b>
             </template>
             <template #time>
-              <p>{{ item.time }}</p>
+              <p>{{ item.createdTime }}</p>
             </template>
             <template #host>
-              <p>{{ item.host }}</p>
+              <p style="font-style: italic">{{ item.createdUser }}</p>
             </template>
           </LiveItem>
         </template>
@@ -107,35 +111,44 @@ const searchInfo = ref("");
 import { onMounted, ref, computed, toRefs } from "vue";
 import { useDialogStore } from "@/stores/dialog";
 import { useRouter } from "vue-router";
+import { getHistoryList } from "@/api/history-controller";
+import { apiRoomDetail } from "@/api/room-controller";
+import { apiGetCollectionList } from "@/api/collection-controller";
 interface historyItem {
-  peerid: string;
-  cover: string;
+  createdUser: string;
+  createdTime: string;
+  modifiedUser: string;
+  modifiedTime: string;
+  id: string;
+  uid: string;
+  rid: string;
+  image: string;
+  categoryId: string;
+  identifier: string;
   title: string;
-  time: string;
-  host: string;
-  isOpen: boolean;
+  sellPoint: string;
+  price: string;
+  num: string;
+  status: string;
+  priority: string;
 }
-const historyList: Array<historyItem> = [
-  {
-    peerid: "123456",
-    cover: "public/images/eden.png",
-    title: "周二情感电台",
-    time: "2024/12/24",
-    host: "瓶子君152",
-    isOpen: true,
-  },
-  {
-    peerid: "123456",
-    cover: "public/images/blue.png",
-    title: "周三欢乐五排",
-    time: "2024/12/25",
-    host: "瓶子君152",
-    isOpen: false,
-  },
-];
+interface collectionType {
+  cid: string;
+  uid: string;
+  rid: string;
+  cname: string;
+  title: string;
+  image: string;
+  createdUser: string;
+  createdTime: string;
+  modifiedUser: string;
+  modifiedTime: string;
+}
+const historyList = ref<Array<historyItem>>();
+  const collectionList=ref<Array<collectionType>>()
 const dialogStore = useDialogStore();
 const router = useRouter();
-
+let Loading = ref<boolean>(false);
 let avatar = ref<string>();
 let isShow = ref<boolean>(false);
 const props = defineProps<{
@@ -145,6 +158,18 @@ let { isClose } = toRefs(props);
 
 const engine = "https://www.bing.com/?q=";
 onMounted(() => {
+  getHistoryList().then((res) => {
+    if(res!.data){
+      console.log("history_list", res);
+      historyList.value = res!.data.data;
+    }
+  });
+  apiGetCollectionList().then((res)=>{
+    if(res!.data){
+      console.log("collection_list",res);
+    collectionList.value=res!.data.data;
+    }
+  })
   let isLogin = localStorage.getItem("isLogin");
   if (isLogin) {
     isShow.value = true;
@@ -160,18 +185,33 @@ onMounted(() => {
 const search = () => {
   window.open(engine + searchInfo.value, "_blank");
 };
-const join = (peerid: string, name: string, isOpen: boolean) => {
-  if (isOpen) {
-    router.push({
-      path: "/audience",
-      query: {
-        id: peerid,
-        name: name,
-      },
+const join = (rid: string, name: string) => {
+  Loading.value = true;
+  apiRoomDetail(rid)
+    .then((res) => {
+      console.log("join", res);
+      let peerid = res!.data.data.identifier;
+      const status = res!.data.data.status;
+      if (status === 2) {
+        router
+          .push({
+            path: "/audience",
+            query: {
+              id: peerid,
+              name: name,
+            },
+          })
+          .then(() => {
+            window.location.reload();
+          });
+      } else {
+        ElMessage.error("主包没有开播！");
+      }
+    })
+    .catch((error) => {
+      console.log(error);
     });
-  } else {
-    ElMessage.error("主包没有开播！");
-  }
+  Loading.value = false;
 };
 </script>
 <style lang="scss" scoped>
@@ -285,7 +325,6 @@ const join = (peerid: string, name: string, isOpen: boolean) => {
     font-family: fantasy;
     font-size: xx-small;
     margin: 0;
-
   }
   .live-nav-logo {
     height: 100%;

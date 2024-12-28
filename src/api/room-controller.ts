@@ -24,9 +24,9 @@ function apiRoomsHotList(){
     console.log(error);
   })
 }
-function apiRoomDetail(rid:number){
+function apiRoomDetail(rid:string){
 
-  return axios.get(`api/rooms/${rid}/detail`).catch(error=>{
+  return axios.get(`api/rooms/${rid}/details`).catch(error=>{
     console.log("请求失败！"+error);
 })
 }
