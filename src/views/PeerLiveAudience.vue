@@ -41,7 +41,9 @@
           </div>
         </div>
         <!--PS: if no video(maybe leaded by autoplay), try to click it to play(or F12 check the stream)-->
-        <video id="webVideo" ref="WebVideo" controls autoplay></video>
+        <div class="video">
+          <video id="webVideo" ref="WebVideo" controls autoplay></video>
+        </div>
       </div>
       <!-- Message box -->
       <div id="chatContainer">
@@ -1028,9 +1030,14 @@ function subscribe() {
     border: solid 0.063rem #d3c2ca;
     flex: 2;
     overflow: hidden;
+    .video {
+      height: 75%;
+      width: 100%;
+    }
     video {
       width: 100%;
-      object-fit: cover;
+      height: 100%;
+      object-fit: contain;
     }
   }
   .video-player-head {
