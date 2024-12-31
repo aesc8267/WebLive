@@ -14,7 +14,6 @@
   },
   "dependencies": {
     "@types/hls.js": "^0.13.3",
-    "@videojs-player/vue": "^1.0.0",
     "@vitejs/plugin-legacy": "^6.0.0",
     "axios": "^1.7.9",
     "element-plus": "^2.9.0",
@@ -25,11 +24,9 @@
     "sass": "^1.82.0",
     "simple-peer": "^9.11.1",
     "socket.io-client": "^4.8.1",
-    "video.js": "^7.21.6",
     "vue": "^3.5.13",
     "vue-router": "^4.4.5",
     "vue-svg-loader": "^0.16.0",
-    "vue-video-player": "^6.0.0",
     "vue3-emoji-picker": "^1.1.8"
   },
   "devDependencies": {

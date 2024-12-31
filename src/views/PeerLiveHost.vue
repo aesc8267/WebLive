@@ -7,8 +7,6 @@ import EmojiPicker, { type EmojiExt } from "vue3-emoji-picker";
 import "vue3-emoji-picker/css";
 import { onBeforeUnmount, onMounted, ref } from "vue";
 import { Peer, DataConnection, MediaConnection } from "peerjs";
-import VideoPlayer from "vue-video-player";
-import "video.js/dist/video-js.css";
 import { apiRoomsInsert, apiSetSatus } from "@/api/room-controller";
 import { useRoute } from "vue-router";
 import { getRid } from "@/api/user-controller";
@@ -631,20 +629,6 @@ function appearMsg(msg: any) {
 
   newMsg.appendChild(newMsgContent);
 
-  // let newMsgContent = document.createElement("div");
-  // newMsgContent.setAttribute("style", "vertical-align: middle; display: inline-block;");
-
-  // let newMsgTime = document.createElement("span");
-  // newMsgTime.appendChild(document.createTextNode("[" + now.getHours() +":"+ now.getMinutes() +":"+ now.getSeconds() + "]"));
-  // newMsgTime.classList.add("time");
-  // newMsgContent.appendChild(newMsgTime);
-
-  // let newMsgUser = document.createElement("span");
-  // newMsgUser.appendChild(document.createTextNode(msg[2] + ":"));
-  // newMsgUser.classList.add("usr");
-  // newMsgContent.appendChild(newMsgUser);
-  // newMsgContent.appendChild(document.createElement("br"));
-
   let newMsgTextContent = document.createElement("span");
   newMsgTextContent.appendChild(document.createTextNode(msg[3]));
   newMsgTextContent.classList.add("chatText");
@@ -658,9 +642,6 @@ function appearMsg(msg: any) {
   }
 
   chatBox.value!.appendChild(newMsg);
-  // original msg appear mode(only one line but low effective)
-  // document.getElementById("chatBox").innerHTML =  document.getElementById("chatBox").innerHTML + "<div class=\"msgs\"><span class=\"time\">[" + now.getHours() +":"+ now.getMinutes() +":"+ now.getSeconds() + "]</span>" + "<span class=\"usr\">"+ msg[2] + ": </span>" + msg[3] + img +"</div>";
-
   if (ifAutoScroll) {
     chatBox.value!.scrollTop = chatBox.value!.scrollHeight;
   }
@@ -690,10 +671,12 @@ function getRoomIds() {
   return roomIds;
 }
 function displayStream(stream: any) {
+  console.log("displayStream",WebVideo.value?.srcObject);
   if (WebVideo.value!.srcObject) {
     WebVideo.value!.srcObject = null;
   }
   WebVideo.value!.srcObject = stream;
+  console.log("displayStream",WebVideo.value?.srcObject);
 }
 function recursiveSearch(arr: Array<any>, t: number) {
   console.log(arr);
@@ -764,9 +747,10 @@ function askNavigatorMediaDevices(
 function shareSRSMediaStream(url: string) {
   url = "webrtc://" + url;
   const rtcPlayer = new SrsRtcPlayerAsync();
+  console.log('rtcplayer',rtcPlayer)
   rtcPlayer.play(url);
   localStream = rtcPlayer.stream;
-  displayStream(localStream);
+  displayStream(rtcPlayer.stream);
 }
 const onVue3EmojiPicker = (emoji: EmojiExt) => {
   console.log(emoji.i);
